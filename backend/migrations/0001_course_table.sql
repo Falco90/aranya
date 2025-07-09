@@ -1,0 +1,6 @@
+CREATE TABLE course (
+    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
+    title VARCHAR NOT NULL,
+    creator VARCHAR NOT NULL,
+    num_students INT
+);
