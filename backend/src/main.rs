@@ -11,6 +11,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let pool = sqlx::postgres::PgPool::connect(&url).await?;
 
     sqlx::migrate!("./migrations").run(&pool).await?;
+    println!("Migrations applied successfully.");
     
     Ok(())
 }
