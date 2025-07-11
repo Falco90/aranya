@@ -64,10 +64,10 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/run-migrations", get(run_migrations))
         .with_state(pool);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 4000));
     println!("Listening on {}", addr);
 
-    let listener = TcpListener::bind("127.0.0.1:3000").await.unwrap();
+    let listener = TcpListener::bind("127.0.0.1:4000").await.unwrap();
     axum::serve(listener, app).await.unwrap();
 
     Ok(())
