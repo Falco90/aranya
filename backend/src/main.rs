@@ -40,7 +40,7 @@ struct Quiz {
 
 #[derive(Deserialize)]
 struct Question {
-    question: String,
+    text: String,
     answers: Vec<Answer>,
 }
 
@@ -144,7 +144,7 @@ pub async fn create_course(
             let question_id: i64 = sqlx::query_scalar(
                 "INSERT INTO question (question, quiz_id) VALUES ($1, $2) RETURNING id",
             )
-            .bind(&question.question)
+            .bind(&question.text)
             .bind(quiz_id)
             .fetch_one(&mut *tx)
             .await
@@ -175,7 +175,7 @@ pub async fn create_course(
         let question_id: i64 = sqlx::query_scalar(
             "INSERT INTO question (question, quiz_id) VALUES ($1, $2) RETURNING id",
         )
-        .bind(&question.question)
+        .bind(&question.text)
         .bind(exam_quiz_id)
         .fetch_one(&mut *tx)
         .await
