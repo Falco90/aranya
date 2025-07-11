@@ -11,6 +11,7 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, migrate::Migrator, postgres::PgPoolOptions};
 use std::{env, error::Error, net::SocketAddr, path::Path};
 use tokio::net::TcpListener;
+use tower_http::cors::{Any, CorsLayer};
 
 #[derive(Deserialize)]
 pub struct CreateCoursePayload {
@@ -59,10 +60,16 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let url = env::var("DATABASE_URL")?;
     let pool = PgPoolOptions::new().connect(&url).await?;
 
+    let cors = CorsLayer::new()
+        .allow_origin(Any) // ⚠️ use `Any` for development only
+        .allow_methods(Any)
+        .allow_headers(Any);
+
     let app = Router::new()
         .route("/create-course", post(create_course))
         .route("/run-migrations", get(run_migrations))
-        .with_state(pool);
+        .with_state(pool)
+        .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 4000));
     println!("Listening on {}", addr);
@@ -140,14 +147,16 @@ pub async fn create_course(
                 )
             })?;
 
-            sqlx::query("INSERT INTO lesson (title, content, module_id, position) VALUES ($1, $2, $3, $4)")
-                .bind(&lesson.title)
-                .bind(&lesson.content)
-                .bind(module_id)
-                .bind(position_i32)
-                .execute(&mut *tx)
-                .await
-                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+            sqlx::query(
+                "INSERT INTO lesson (title, content, module_id, position) VALUES ($1, $2, $3, $4)",
+            )
+            .bind(&lesson.title)
+            .bind(&lesson.content)
+            .bind(module_id)
+            .bind(position_i32)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         }
 
         let quiz_id: i64 =
