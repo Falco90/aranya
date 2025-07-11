@@ -23,6 +23,7 @@ pub struct CreateCoursePayload {
 #[derive(Deserialize)]
 pub struct Module {
     title: String,
+    position: u32,
     lessons: Vec<Lesson>,
     quiz: Quiz,
 }
@@ -30,6 +31,7 @@ pub struct Module {
 #[derive(Deserialize)]
 pub struct Lesson {
     title: String,
+    position: u32,
     content: String,
 }
 
@@ -113,26 +115,41 @@ pub async fn create_course(
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     for module in &payload.modules {
+        let position_i32: i32 = module.position.try_into().map_err(|_| {
+            (
+                StatusCode::BAD_REQUEST,
+                format!("Position {} is too large for an i32", module.position),
+            )
+        })?;
+
         let module_id: i64 = sqlx::query_scalar(
-            "INSERT INTO module (title, course_id) VALUES ($1, $2) RETURNING id",
+            "INSERT INTO module (title, course_id, position) VALUES ($1, $2, $3) RETURNING id",
         )
         .bind(&module.title)
         .bind(course_id)
+        .bind(position_i32)
         .fetch_one(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
         for lesson in &module.lessons {
-            sqlx::query("INSERT INTO lesson (title, content, module_id) VALUES ($1, $2, $3)")
+            let position_i32: i32 = lesson.position.try_into().map_err(|_| {
+                (
+                    StatusCode::BAD_REQUEST,
+                    format!("Position {} is too large for an i32", module.position),
+                )
+            })?;
+
+            sqlx::query("INSERT INTO lesson (title, content, module_id, position) VALUES ($1, $2, $3, $4)")
                 .bind(&lesson.title)
                 .bind(&lesson.content)
                 .bind(module_id)
+                .bind(position_i32)
                 .execute(&mut *tx)
                 .await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         }
 
-        // 4. Add module's quiz
         let quiz_id: i64 =
             sqlx::query_scalar("INSERT INTO quiz (module_id) VALUES ($1) RETURNING id")
                 .bind(module_id)
