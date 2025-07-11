@@ -1,8 +1,14 @@
-use axum::{Json, Router, extract::State, routing::post, http::StatusCode, response::IntoResponse};
+use axum::{
+    Json, Router,
+    extract::State,
+    http::StatusCode,
+    response::IntoResponse,
+    routing::{get, post},
+};
 use dotenv::dotenv;
 use serde::Deserialize;
 use serde_json::json;
-use sqlx::{Pool, Postgres, postgres::PgPoolOptions, migrate::Migrator};
+use sqlx::{Pool, Postgres, migrate::Migrator, postgres::PgPoolOptions};
 use std::{env, error::Error, net::SocketAddr, path::Path};
 use tokio::net::TcpListener;
 
@@ -21,6 +27,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app = Router::new()
         .route("/create-course", post(create_course))
+        .route("/run-migrations", get(run_migrations))
         .with_state(pool);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
@@ -32,13 +39,24 @@ async fn main() -> Result<(), Box<dyn Error>> {
     Ok(())
 }
 
-async fn run_migrations(pool: &Pool<Postgres>) -> Result<(), Box<dyn Error>> {
-    let migrator = Migrator::new(Path::new("./migrations")).await?;
-    migrator.run(pool).await?;
+async fn run_migrations(
+    State(pool): State<Pool<Postgres>>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let migrator = Migrator::new(Path::new("./migrations"))
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    migrator
+        .run(&pool)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     println!("Migrations applied successfully.");
 
-    Ok(())
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({ "message": "Migrations ran successfully" })),
+    ))
 }
 
 async fn create_course(
