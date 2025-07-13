@@ -1,3 +1,5 @@
+SET statement_timeout = '5min';
+
 -- Drop in reverse order due to foreign key dependencies
 DROP TABLE IF EXISTS lesson_progress;
 DROP TABLE IF EXISTS module_progress;
@@ -44,22 +46,21 @@ CREATE TABLE lesson (
 CREATE TABLE quiz (
     id BIGSERIAL PRIMARY KEY,
     module_id BIGINT REFERENCES module(id) ON DELETE CASCADE,
-    course_id BIGINT REFERENCES course(id) ON DELETE CASCADE,
-    title TEXT NOT NULL
+    course_id BIGINT REFERENCES course(id) ON DELETE CASCADE
 );
 
 -- Question table (belongs to quiz)
 CREATE TABLE question (
     id BIGSERIAL PRIMARY KEY,
     quiz_id BIGINT NOT NULL REFERENCES quiz(id) ON DELETE CASCADE,
-    question_text TEXT NOT NULL
+    text TEXT NOT NULL
 );
 
 -- Multiple-choice answer options
 CREATE TABLE answer_option (
     id BIGSERIAL PRIMARY KEY,
     question_id BIGINT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
-    answer_text TEXT NOT NULL,
+    text TEXT NOT NULL,
     is_correct BOOLEAN DEFAULT FALSE
 );
 
