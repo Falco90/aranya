@@ -2,14 +2,14 @@
 
 import { useState } from "react";
 
-type Answer = {
+type AnswerOption = {
     text: string;
     is_correct: boolean;
 };
 
 type Question = {
     text: string;
-    answers: Answer[];
+    answers: AnswerOption[];
 };
 
 type Quiz = {
@@ -19,35 +19,41 @@ type Quiz = {
 type Lesson = {
     title: string;
     content: string;
+    video_url: string | null;
+    position: number;
 };
 
 type Module = {
     title: string;
+    position: number;
     lessons: Lesson[];
     quiz: Quiz;
 };
 
 type CreateCoursePayload = {
     title: string;
+    description: string;
     creator: string;
     modules: Module[];
-    final_exam: Quiz;
 };
 
 export default function CreateCourse() {
     const [title, setTitle] = useState("");
     const [creator, setCreator] = useState("");
+    const [description, setDescription] = useState("");
 
     const handleSubmit = async () => {
         const payload: CreateCoursePayload = {
             title,
+            description,
             creator,
             modules: [
                 {
                     title: "Module 1",
+                    position: 1,
                     lessons: [
-                        { title: "Lesson 1", content: "Intro content" },
-                        { title: "Lesson 2", content: "More content" },
+                        { title: "Lesson 1", content: "Intro content", video_url: null, position: 1 },
+                        { title: "Lesson 2", content: "More content", video_url: null, position: 2  },
                     ],
                     quiz: {
                         questions: [
@@ -61,40 +67,41 @@ export default function CreateCourse() {
                         ],
                     },
                 },
-            ],
-            final_exam: {
-                questions: [
-                    {
-                        text: "Final exam question?",
-                        answers: [
-                            { text: "Yes", is_correct: true },
-                            { text: "No", is_correct: false },
-                        ],
-                    },
-                ],
-            },
+            ]
         };
 
-        console.log(payload);
-        try {
-            const res = await fetch("http://localhost:4000/create-course", {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(payload),
-            });
+try {
+    const res = await fetch("http://localhost:4000/create-course", {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
 
-            const data = await res.json();
-            if (res.ok) {
-                alert(`Course created! ID: ${data.course_id}`);
-            } else {
-                alert(`Error: ${data.message}`);
-            }
-        } catch (error) {
-            console.error(error);
-            alert("Network error");
-        }
+    console.log("Response status:", res.status); // <--- log status
+
+    const text = await res.text(); // Don't assume it's JSON yet
+    console.log("RAW RESPONSE:", text);
+
+    let data;
+    try {
+        data = JSON.parse(text);
+    } catch {
+        console.error("Response was not valid JSON:", text);
+        alert("Server error: " + text);
+        return;
+    }
+
+    if (res.ok) {
+        alert(`Course created! ID: ${data.course_id}`);
+    } else {
+        alert(`Error: ${data.message}`);
+    }
+} catch (error) {
+    console.error("FETCH ERROR:", error); // <--- catch any fetch issues
+    alert("Network error or fetch failed.");
+}
     };
 
     return (
@@ -118,6 +125,16 @@ export default function CreateCourse() {
                     className="w-full p-2 border rounded"
                     value={creator}
                     onChange={(e) => setCreator(e.target.value)}
+                />
+            </label>
+
+            <label className="block mb-4">
+                Description:
+                <input
+                    type="text"
+                    className="w-full p-2 border rounded"
+                    value={description}
+                    onChange={(e) => setDescription(e.target.value)}
                 />
             </label>
 

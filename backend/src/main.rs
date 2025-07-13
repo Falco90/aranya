@@ -6,51 +6,52 @@ use axum::{
     routing::{get, post},
 };
 use dotenv::dotenv;
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::{Pool, Postgres, migrate::Migrator, postgres::PgPoolOptions};
 use std::{env, error::Error, net::SocketAddr, path::Path};
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
-#[derive(Deserialize)]
-pub struct CreateCoursePayload {
-    title: String,
-    creator: String,
-    modules: Vec<Module>,
-    final_exam: Quiz,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Course {
+    pub title: String,
+    pub description: String,
+    pub creator: String,
+    pub modules: Vec<Module>,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Module {
-    title: String,
-    position: u32,
-    lessons: Vec<Lesson>,
-    quiz: Quiz,
+    pub title: String,
+    pub position: i32,
+    pub lessons: Vec<Lesson>,
+    pub quiz: Quiz,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize, Serialize)]
 pub struct Lesson {
-    title: String,
-    position: u32,
-    content: String,
+    pub title: String,
+    pub content: String,
+    pub video_url: Option<String>,
+    pub position: i32,
 }
 
-#[derive(Deserialize)]
-struct Quiz {
-    questions: Vec<Question>,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Quiz {
+    pub questions: Vec<Question>,
 }
 
-#[derive(Deserialize)]
-struct Question {
-    text: String,
-    answers: Vec<Answer>,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct Question {
+    pub text: String,
+    pub answers: Vec<AnswerOption>,
 }
 
-#[derive(Deserialize)]
-pub struct Answer {
-    text: String,
-    is_correct: bool,
+#[derive(Debug, Deserialize, Serialize)]
+pub struct AnswerOption {
+    pub text: String,
+    pub is_correct: bool,
 }
 
 #[tokio::main]
@@ -83,6 +84,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn run_migrations(
     State(pool): State<Pool<Postgres>>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
+
     let migrator = Migrator::new(Path::new("./migrations"))
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -102,21 +104,23 @@ async fn run_migrations(
 
 pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
-    Json(payload): Json<CreateCoursePayload>,
+    Json(payload): Json<Course>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
+
     let mut tx = pool.begin().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Failed to begin transaction: {}", e),
+            format!("TX Failed to begin transaction: {}", e),
         )
     })?;
 
+    println!("payload: {:#?}", payload);
     let course_id: i64 = sqlx::query_scalar(
-        "INSERT INTO course (title, creator, num_students) VALUES ($1, $2, $3) RETURNING id",
+        "INSERT INTO course (title, creator, description) VALUES ($1, $2, $3) RETURNING id",
     )
     .bind(&payload.title)
     .bind(&payload.creator)
-    .bind(0)
+    .bind(&payload.description)
     .fetch_one(&mut *tx)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -148,10 +152,11 @@ pub async fn create_course(
             })?;
 
             sqlx::query(
-                "INSERT INTO lesson (title, content, module_id, position) VALUES ($1, $2, $3, $4)",
+                "INSERT INTO lesson (title, content, video_url, module_id, position) VALUES ($1, $2, $3, $4, $5)",
             )
             .bind(&lesson.title)
             .bind(&lesson.content)
+            .bind(&lesson.video_url)
             .bind(module_id)
             .bind(position_i32)
             .execute(&mut *tx)
@@ -168,7 +173,7 @@ pub async fn create_course(
 
         for question in &module.quiz.questions {
             let question_id: i64 = sqlx::query_scalar(
-                "INSERT INTO question (question, quiz_id) VALUES ($1, $2) RETURNING id",
+                "INSERT INTO question (text, quiz_id) VALUES ($1, $2) RETURNING id",
             )
             .bind(&question.text)
             .bind(quiz_id)
@@ -178,7 +183,7 @@ pub async fn create_course(
 
             for answer in &question.answers {
                 sqlx::query(
-                    "INSERT INTO answer (text, is_correct, question_id) VALUES ($1, $2, $3)",
+                    "INSERT INTO answer_option (text, is_correct, question_id) VALUES ($1, $2, $3)",
                 )
                 .bind(&answer.text)
                 .bind(answer.is_correct)
@@ -187,34 +192,6 @@ pub async fn create_course(
                 .await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
             }
-        }
-    }
-
-    let exam_quiz_id: i64 =
-        sqlx::query_scalar("INSERT INTO quiz (course_id) VALUES ($1) RETURNING id")
-            .bind(course_id)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    for question in &payload.final_exam.questions {
-        let question_id: i64 = sqlx::query_scalar(
-            "INSERT INTO question (question, quiz_id) VALUES ($1, $2) RETURNING id",
-        )
-        .bind(&question.text)
-        .bind(exam_quiz_id)
-        .fetch_one(&mut *tx)
-        .await
-        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-        for answer in &question.answers {
-            sqlx::query("INSERT INTO answer (text, is_correct, question_id) VALUES ($1, $2, $3)")
-                .bind(&answer.text)
-                .bind(answer.is_correct)
-                .bind(question_id)
-                .execute(&mut *tx)
-                .await
-                .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         }
     }
 
