@@ -13,11 +13,17 @@ use std::{env, error::Error, net::SocketAddr, path::Path};
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
+#[derive(Deserialize, Debug)]
+pub struct JoinCourseRequest {
+    pub privy_id: String,
+    pub course_id: i64,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Course {
     pub title: String,
     pub description: String,
-    pub creator: String,
+    pub creator_id: String,
     pub modules: Vec<Module>,
 }
 
@@ -44,13 +50,13 @@ pub struct Quiz {
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Question {
-    pub text: String,
+    pub question_text: String,
     pub answers: Vec<AnswerOption>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct AnswerOption {
-    pub text: String,
+    pub answer_text: String,
     pub is_correct: bool,
 }
 
@@ -68,7 +74,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
 
     let app = Router::new()
         .route("/create-course", post(create_course))
-        .route("/run-migrations", get(run_migrations))
+        .route("/join-course", post(join_course))
         .with_state(pool)
         .layer(cors);
 
@@ -84,7 +90,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
 async fn run_migrations(
     State(pool): State<Pool<Postgres>>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-
     let migrator = Migrator::new(Path::new("./migrations"))
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
@@ -106,7 +111,6 @@ pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<Course>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-
     let mut tx = pool.begin().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -115,11 +119,19 @@ pub async fn create_course(
     })?;
 
     println!("payload: {:#?}", payload);
+
+    // Ensure creator exists
+    sqlx::query("INSERT INTO creator (id) VALUES ($1) ON CONFLICT DO NOTHING")
+        .bind(&payload.creator_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
     let course_id: i64 = sqlx::query_scalar(
-        "INSERT INTO course (title, creator, description) VALUES ($1, $2, $3) RETURNING id",
+        "INSERT INTO course (title, creator_id, description) VALUES ($1, $2, $3) RETURNING id",
     )
     .bind(&payload.title)
-    .bind(&payload.creator)
+    .bind(&payload.creator_id)
     .bind(&payload.description)
     .fetch_one(&mut *tx)
     .await
@@ -173,9 +185,9 @@ pub async fn create_course(
 
         for question in &module.quiz.questions {
             let question_id: i64 = sqlx::query_scalar(
-                "INSERT INTO question (text, quiz_id) VALUES ($1, $2) RETURNING id",
+                "INSERT INTO question (question_text, quiz_id) VALUES ($1, $2) RETURNING id",
             )
-            .bind(&question.text)
+            .bind(&question.question_text)
             .bind(quiz_id)
             .fetch_one(&mut *tx)
             .await
@@ -183,9 +195,9 @@ pub async fn create_course(
 
             for answer in &question.answers {
                 sqlx::query(
-                    "INSERT INTO answer_option (text, is_correct, question_id) VALUES ($1, $2, $3)",
+                    "INSERT INTO answer_option (answer_text, is_correct, question_id) VALUES ($1, $2, $3)",
                 )
-                .bind(&answer.text)
+                .bind(&answer.answer_text)
                 .bind(answer.is_correct)
                 .bind(question_id)
                 .execute(&mut *tx)
@@ -205,5 +217,45 @@ pub async fn create_course(
     Ok((
         StatusCode::CREATED,
         Json(json!({ "message": "Course created successfully", "course_id": course_id })),
+    ))
+}
+
+pub async fn join_course(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<JoinCourseRequest>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let mut tx = pool.begin().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("TX Failed to begin transaction: {}", e),
+        )
+    })?;
+
+    println!("payload: {:#?}", payload);
+
+    // Ensure learner exists
+    sqlx::query("INSERT INTO learner (id) VALUES ($1) ON CONFLICT DO NOTHING")
+        .bind(&payload.privy_id)
+        .execute(&mut *tx)
+        .await
+        .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    // Insert enrollment
+    sqlx::query(
+        "INSERT INTO learner_course_enrollment (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",).bind(&payload.privy_id).bind(&payload.course_id)
+    .execute(&mut *tx)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    tx.commit().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to commit transaction: {}", e),
+        )
+    })?;
+    
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({ "message": "Course joined successfully", "course_id": &payload.course_id })),
     ))
 }
