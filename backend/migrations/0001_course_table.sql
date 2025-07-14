@@ -1,11 +1,10 @@
-SET statement_timeout = '5min';
-
 -- Drop in reverse order due to foreign key dependencies
 DROP TABLE IF EXISTS lesson_progress;
 DROP TABLE IF EXISTS module_progress;
 DROP TABLE IF EXISTS course_progress;
 DROP TABLE IF EXISTS learner_course_enrollment;
 DROP TABLE IF EXISTS learner;
+DROP TABLE IF EXISTS creator;
 DROP TABLE IF EXISTS answer_option;
 DROP TABLE IF EXISTS question;
 DROP TABLE IF EXISTS quiz;
@@ -13,14 +12,20 @@ DROP TABLE IF EXISTS lesson;
 DROP TABLE IF EXISTS module;
 DROP TABLE IF EXISTS course;
 
+-- Creator table (must be defined before course)
+CREATE TABLE creator (
+    id TEXT PRIMARY KEY -- Privy ID
+);
+
 -- Course table
 CREATE TABLE course (
     id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
     title VARCHAR NOT NULL,
     description VARCHAR NOT NULL,
-    creator VARCHAR NOT NULL,
+    creator_id TEXT NOT NULL REFERENCES creator(id) ON DELETE CASCADE,
     num_students INT DEFAULT 0
 );
+
 
 -- Module table
 CREATE TABLE module (
@@ -53,27 +58,25 @@ CREATE TABLE quiz (
 CREATE TABLE question (
     id BIGSERIAL PRIMARY KEY,
     quiz_id BIGINT NOT NULL REFERENCES quiz(id) ON DELETE CASCADE,
-    text TEXT NOT NULL
+    question_text TEXT NOT NULL
 );
 
 -- Multiple-choice answer options
 CREATE TABLE answer_option (
     id BIGSERIAL PRIMARY KEY,
     question_id BIGINT NOT NULL REFERENCES question(id) ON DELETE CASCADE,
-    text TEXT NOT NULL,
+    answer_text TEXT NOT NULL,
     is_correct BOOLEAN DEFAULT FALSE
 );
 
 -- Learner table
 CREATE TABLE learner (
-    id BIGINT GENERATED ALWAYS AS IDENTITY PRIMARY KEY,
-    name TEXT NOT NULL,
-    email TEXT UNIQUE NOT NULL
+    id TEXT PRIMARY KEY -- Privy ID
 );
 
 -- Learner-course many-to-many relationship
 CREATE TABLE learner_course_enrollment (
-    learner_id BIGINT REFERENCES learner(id) ON DELETE CASCADE,
+    learner_id TEXT REFERENCES learner(id) ON DELETE CASCADE,
     course_id BIGINT REFERENCES course(id) ON DELETE CASCADE,
     enrolled_at TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (learner_id, course_id)
@@ -81,7 +84,7 @@ CREATE TABLE learner_course_enrollment (
 
 -- Track completed lessons
 CREATE TABLE lesson_progress (
-    learner_id BIGINT REFERENCES learner(id) ON DELETE CASCADE,
+    learner_id TEXT REFERENCES learner(id) ON DELETE CASCADE,
     lesson_id BIGINT REFERENCES lesson(id) ON DELETE CASCADE,
     completed_at TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (learner_id, lesson_id)
@@ -89,7 +92,7 @@ CREATE TABLE lesson_progress (
 
 -- Track completed modules
 CREATE TABLE module_progress (
-    learner_id BIGINT REFERENCES learner(id) ON DELETE CASCADE,
+    learner_id TEXT REFERENCES learner(id) ON DELETE CASCADE,
     module_id BIGINT REFERENCES module(id) ON DELETE CASCADE,
     completed_at TIMESTAMPTZ DEFAULT now(),
     PRIMARY KEY (learner_id, module_id)
@@ -97,7 +100,7 @@ CREATE TABLE module_progress (
 
 -- Track course progress
 CREATE TABLE course_progress (
-    learner_id BIGINT REFERENCES learner(id) ON DELETE CASCADE,
+    learner_id TEXT REFERENCES learner(id) ON DELETE CASCADE,
     course_id BIGINT REFERENCES course(id) ON DELETE CASCADE,
     progress_percent INT DEFAULT 0,
     completed BOOLEAN DEFAULT FALSE,
