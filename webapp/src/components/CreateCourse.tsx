@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import { useUser } from "@privy-io/react-auth";
 
 type AnswerOption = {
     text: string;
@@ -39,14 +40,14 @@ type CreateCoursePayload = {
 
 export default function CreateCourse() {
     const [title, setTitle] = useState("");
-    const [creator, setCreator] = useState("");
     const [description, setDescription] = useState("");
+    const { user } = useUser();
 
     const handleSubmit = async () => {
         const payload: CreateCoursePayload = {
             title,
             description,
-            creator,
+            creator: user!.id,
             modules: [
                 {
                     title: "Module 1",
@@ -115,16 +116,6 @@ try {
                     className="w-full p-2 border rounded"
                     value={title}
                     onChange={(e) => setTitle(e.target.value)}
-                />
-            </label>
-
-            <label className="block mb-4">
-                Creator:
-                <input
-                    type="text"
-                    className="w-full p-2 border rounded"
-                    value={creator}
-                    onChange={(e) => setCreator(e.target.value)}
                 />
             </label>
 
