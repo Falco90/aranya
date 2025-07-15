@@ -1,6 +1,7 @@
 import CreateCourse from "@/components/CreateCourse";
 import JoinCourse from "@/components/JoinCourse";
 import PrivyLoginButton from "@/components/PrivyLoginButton";
+import CompleteLessonButton from "@/components/CompleteLessonButton";
 
 export default function Home() {
   return (
@@ -10,6 +11,7 @@ export default function Home() {
         <PrivyLoginButton />
         <CreateCourse />
         <JoinCourse courseId={4}/>
+        <CompleteLessonButton lessonId={8} moduleId={4} courseId={5} />
 
         <button>Run migrations</button>
 
