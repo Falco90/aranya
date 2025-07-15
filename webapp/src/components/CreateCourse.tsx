@@ -4,12 +4,12 @@ import { useState } from "react";
 import { useUser } from "@privy-io/react-auth";
 
 type AnswerOption = {
-    text: string;
+    answer_text: string;
     is_correct: boolean;
 };
 
 type Question = {
-    text: string;
+    question_text: string;
     answers: AnswerOption[];
 };
 
@@ -34,7 +34,7 @@ type Module = {
 type CreateCoursePayload = {
     title: string;
     description: string;
-    creator: string;
+    creator_id: string;
     modules: Module[];
 };
 
@@ -47,7 +47,7 @@ export default function CreateCourse() {
         const payload: CreateCoursePayload = {
             title,
             description,
-            creator: user!.id,
+            creator_id: user!.id,
             modules: [
                 {
                     title: "Module 1",
@@ -59,10 +59,10 @@ export default function CreateCourse() {
                     quiz: {
                         questions: [
                             {
-                                text: "What is Rust?",
+                                question_text: "What is Rust?",
                                 answers: [
-                                    { text: "A programming language", is_correct: true },
-                                    { text: "A car", is_correct: false },
+                                    { answer_text: "A programming language", is_correct: true },
+                                    { answer_text: "A car", is_correct: false },
                                 ],
                             },
                         ],
@@ -80,10 +80,7 @@ try {
         body: JSON.stringify(payload),
     });
 
-    console.log("Response status:", res.status); // <--- log status
-
     const text = await res.text(); // Don't assume it's JSON yet
-    console.log("RAW RESPONSE:", text);
 
     let data;
     try {

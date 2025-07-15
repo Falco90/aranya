@@ -1,4 +1,5 @@
 import CreateCourse from "@/components/CreateCourse";
+import JoinCourse from "@/components/JoinCourse";
 import PrivyLoginButton from "@/components/PrivyLoginButton";
 
 export default function Home() {
@@ -8,6 +9,7 @@ export default function Home() {
         <h1>ARANYA</h1>
         <PrivyLoginButton />
         <CreateCourse />
+        <JoinCourse courseId={4}/>
 
         <button>Run migrations</button>
 
