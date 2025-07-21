@@ -25,7 +25,7 @@ export default function PrivyLoginButton() {
             onClick={handleLogin}
             className="bg-violet-600 hover:bg-violet-700 py-3 px-6 text-white rounded-lg"
         >
-            {user ? "Go to Dashboard" : "Log in"}
+            {user ? `${user.id}` : "Log in"}
         </button>
     );
 }
