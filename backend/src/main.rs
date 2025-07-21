@@ -1,18 +1,27 @@
-use axum::{
-    Json, Router,
-    extract::State,
-    http::StatusCode,
-    response::IntoResponse,
-    routing::{post},
-};
+use axum::{Json, Router, extract::State, http::StatusCode, response::IntoResponse, routing::post};
+use chrono::{DateTime, Utc};
 use dotenv::dotenv;
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::{Pool, Postgres, migrate::Migrator, postgres::PgPoolOptions};
+use sqlx::{migrate::Migrator, postgres::PgPoolOptions, prelude::FromRow, Pool, Postgres};
 use std::{env, error::Error, net::SocketAddr, path::Path};
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
+#[derive(Deserialize)]
+pub struct CourseProgressRequest {
+    pub learner_id: String,
+    pub course_id: i64,
+}
+
+#[derive(Serialize, FromRow)]
+pub struct CourseProgressResponse {
+    pub course_id: i64,
+    pub learner_id: String,
+    pub progress_percent: i32,
+    pub completed: bool,
+    pub last_accessed: Option<DateTime<Utc>>
+}
 #[derive(Deserialize, Debug)]
 pub struct JoinCourseRequest {
     pub privy_id: String,
@@ -84,6 +93,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
         .route("/create-course", post(create_course))
         .route("/join-course", post(join_course))
         .route("/complete-lesson", post(complete_lesson))
+        .route("/get-course-progress", post(get_course_progress))
         .with_state(pool)
         .layer(cors);
 
@@ -447,4 +457,40 @@ pub async fn complete_lesson(
         StatusCode::CREATED,
         Json(json!({ "message": "Progress updated successfully" })),
     ))
+}
+
+pub async fn get_course_progress(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<CourseProgressRequest>,
+) -> Result<Json<CourseProgressResponse>, (StatusCode, String)> {
+    let result: Option<CourseProgressResponse> = sqlx::query_as::<_, CourseProgressResponse>(
+        r#"
+        SELECT
+            course_id,
+            learner_id,
+            progress_percent,
+            completed,
+            last_accessed
+        FROM course_progress
+        WHERE course_id = $1 AND learner_id = $2
+        "#,
+    )
+    .bind(&payload.course_id)
+    .bind(&payload.learner_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database error: {}", e),
+        )
+    })?;
+
+    match result {
+        Some(progress) => Ok(Json(progress)),
+        None => Err((
+            StatusCode::NOT_FOUND,
+            "Course progress not found for learner".to_string(),
+        )),
+    }
 }
