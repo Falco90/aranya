@@ -14,15 +14,15 @@ interface ILearnerNFT {
         IWeb2Json.Proof calldata data
     ) external;
 
-    function mint() external returns (uint256);
+    function mint(address to) external returns (uint256);
 }
 
 contract LearnerNFT is ERC721, ERC721URIStorage {
     uint256 public tokenCounter;
     uint256 public courseId;
-    address public courseCreator;
-
+    string[5] public milestoneURIs;
     mapping(uint256 => uint256) public tokenMilestones;
+
     mapping(uint256 => bool) public tokenExists;
 
     struct DataTransportObject {
@@ -43,22 +43,21 @@ contract LearnerNFT is ERC721, ERC721URIStorage {
         string memory _name,
         string memory _symbol,
         uint256 _courseId,
-        address _creator
+        string[5] memory _milestoneURIs
     ) ERC721(_name, _symbol) {
         courseId = _courseId;
-        courseCreator = _creator;
+        milestoneURIs = _milestoneURIs;
     }
 
     function isJsonApiProofValid(
         IWeb2Json.Proof calldata _proof
     ) private view returns (bool) {
-        // Inline the check for now until we have an official contract deployed
         return ContractRegistry.getFdcVerification().verifyJsonApi(_proof);
     }
 
-    function mint() external returns (uint256) {
+    function mint(address to) external returns (uint256) {
         uint256 tokenId = ++tokenCounter;
-        _safeMint(msg.sender, tokenId);
+        _safeMint(to, tokenId);
         tokenExists[tokenId] = true;
         emit LearnerNFTMinted(msg.sender, tokenId);
         return tokenId;
@@ -76,14 +75,24 @@ contract LearnerNFT is ERC721, ERC721URIStorage {
             (DataTransportObject)
         );
 
-        if (dto.progress_percent == 100) {
-            tokenMilestones[tokenId] = 1;
-        }
+        uint256 newMilestone = dto.progress_percent / 20; // ranges from 0–5
+        uint256 currentMilestone = tokenMilestones[tokenId];
 
-        emit MilestoneUpdated(msg.sender, tokenId, tokenMilestones[tokenId]);
+        if (newMilestone > currentMilestone) {
+            tokenMilestones[tokenId] = newMilestone;
+            updateTokenURI(tokenId, milestoneURIs[newMilestone - 1]);
+            emit MilestoneUpdated(msg.sender, tokenId, newMilestone);
+        }
     }
 
     // The following functions are overrides required by Solidity.
+
+    function updateTokenURI(
+        uint256 tokenId,
+        string memory newTokenURI
+    ) internal {
+        _setTokenURI(tokenId, newTokenURI);
+    }
 
     function tokenURI(
         uint256 tokenId

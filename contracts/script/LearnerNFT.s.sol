@@ -19,14 +19,16 @@ contract PrepareAttestationRequest is Script {
 
     // Setting request data
     // string public apiUrl = "https://swapi.dev/api/people/3/";
-    string public apiUrl = "https://e433e06bac25.ngrok-free.app/get-course-progress";
+    string public apiUrl =
+        "https://e433e06bac25.ngrok-free.app/get-course-progress";
     string public httpMethod = "GET";
     // Defaults to "Content-Type": "application/json"
     string public headers = '{\\"Content-Type\\":\\"application/json\\"}';
-    string public queryParams = '{\\"learner_id\\":\\"did:privy:cmd2wmiz80171kz0mmwjh1acf\\", \\"course_id\\":\\"4\\"}';
+    string public queryParams =
+        '{\\"learner_id\\":\\"did:privy:cmd2wmiz80171kz0mmwjh1acf\\", \\"course_id\\":\\"4\\"}';
     string public body = "{}";
     string public postProcessJq =
-        '{course_id: .course_id, learner_id: .learner_id, progress_percent: .progress_percent}';
+        "{course_id: .course_id, learner_id: .learner_id, progress_percent: .progress_percent}";
     string public abiSignature =
         '{\\"components\\": [{\\"internalType\\": \\"uint256\\", \\"name\\": \\"course_id\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"string\\", \\"name\\": \\"learner_id\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"progress_percent\\", \\"type\\": \\"uint256\\"}],\\"name\\": \\"task\\",\\"type\\": \\"tuple\\"}';
 
@@ -142,20 +144,10 @@ contract RetrieveDataAndProof is Script {
 
         // We import the abiEncodedRequest and votingRoundId from the files
         string memory requestBytes = vm.readLine(
-            string.concat(
-                dirPath,
-                contractName,
-                "_abiEncodedRequest",
-                ".txt"
-            )
+            string.concat(dirPath, contractName, "_abiEncodedRequest", ".txt")
         );
         string memory votingRoundId = vm.readLine(
-            string.concat(
-                dirPath,
-                contractName,
-                "_votingRoundId",
-                ".txt"
-            )
+            string.concat(dirPath, contractName, "_votingRoundId", ".txt")
         );
 
         console.log("votingRoundId: %s\n", votingRoundId);
@@ -219,7 +211,12 @@ contract DeployContract is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        LearnerNFT learnerNFT = new LearnerNFT("TestCourse", "Test", 4, msg.sender);
+        LearnerNFT learnerNFT = new LearnerNFT(
+            "TestCourse",
+            "Test",
+            4,
+            ["tokenURI1", "TokenURI2", "TokenURI3", "TokenURI4", "TokenURI5"]
+        );
         address _address = address(learnerNFT);
 
         vm.stopBroadcast();
@@ -250,7 +247,7 @@ contract InteractWithContract is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         ILearnerNFT learnerNFT = ILearnerNFT(_address);
-        uint256 tokenId = learnerNFT.mint();
+        uint256 tokenId = learnerNFT.mint(msg.sender);
         learnerNFT.updateMilestone(tokenId, proof);
         vm.stopBroadcast();
     }
