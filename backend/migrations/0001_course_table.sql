@@ -23,7 +23,8 @@ CREATE TABLE course (
     title VARCHAR NOT NULL,
     description VARCHAR NOT NULL,
     creator_id TEXT NOT NULL REFERENCES creator(id) ON DELETE CASCADE,
-    num_students INT DEFAULT 0
+    num_learners INT DEFAULT 0,
+    num_completed INT DEFAULT 0
 );
 
 

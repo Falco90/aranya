@@ -1,4 +1,9 @@
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    Json,
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use serde_json::json;
 use sqlx::{Pool, Postgres};
 
@@ -170,6 +175,14 @@ pub async fn complete_lesson(
     .execute(&mut *tx)
     .await
     .ok();
+
+    if completed {
+        sqlx::query("UPDATE course SET num_completed = num_completed + 1 WHERE id = $1")
+            .bind(&payload.course_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    }
 
     tx.commit().await.map_err(|e| {
         (

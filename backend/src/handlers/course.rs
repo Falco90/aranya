@@ -138,11 +138,20 @@ pub async fn join_course(
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Insert enrollment
-    sqlx::query(
+    let result = sqlx::query(
         "INSERT INTO learner_course_enrollment (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",).bind(&payload.privy_id).bind(&payload.course_id)
     .execute(&mut *tx)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    // Only increment if enrollment actually happened
+    if result.rows_affected() > 0 {
+        sqlx::query("UPDATE course SET num_learners = num_learners + 1 WHERE id = $1")
+            .bind(&payload.course_id)
+            .execute(&mut *tx)
+            .await
+            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+    }
 
     tx.commit().await.map_err(|e| {
         (
