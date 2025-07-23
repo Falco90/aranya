@@ -10,7 +10,8 @@ import {IWeb2Json} from "dependencies/flare-periphery-0.1.33/src/coston2/IWeb2Js
 import {Surl} from "dependencies/surl-0.0.0/src/Surl.sol";
 import {ILearnerNFT, LearnerNFT} from "src/LearnerNFT.sol";
 
-string constant attestationTypeName = "LearnerNFT";
+string constant attestationTypeName = "Web2Json";
+string constant contractName = "LearnerNFT";
 string constant dirPath = "data/";
 
 contract PrepareAttestationRequest is Script {
@@ -18,11 +19,11 @@ contract PrepareAttestationRequest is Script {
 
     // Setting request data
     // string public apiUrl = "https://swapi.dev/api/people/3/";
-    string public apiUrl = "https://localhost:4000/get-course-progress";
+    string public apiUrl = "https://e433e06bac25.ngrok-free.app/get-course-progress";
     string public httpMethod = "GET";
     // Defaults to "Content-Type": "application/json"
-    string public headers = '{\\"Content-Type\\":\\"text/plain\\"}';
-    string public queryParams = "{}";
+    string public headers = '{\\"Content-Type\\":\\"application/json\\"}';
+    string public queryParams = '{\\"learner_id\\":\\"did:privy:cmd2wmiz80171kz0mmwjh1acf\\", \\"course_id\\":\\"4\\"}';
     string public body = "{}";
     string public postProcessJq =
         '{course_id: .course_id, learner_id: .learner_id, progress_percent: .progress_percent}';
@@ -97,7 +98,7 @@ contract PrepareAttestationRequest is Script {
         // Writing abiEncodedRequest to a file
         Base.writeToFile(
             dirPath,
-            string.concat(attestationTypeName, "_abiEncodedRequest"),
+            string.concat(contractName, "_abiEncodedRequest"),
             StringsBase.toHexString(response.abiEncodedRequest),
             true
         );
@@ -110,7 +111,7 @@ contract SubmitAttestationRequest is Script {
     function run() external {
         // Reading the abiEncodedRequest from a file
         string memory fileName = string.concat(
-            attestationTypeName,
+            contractName,
             "_abiEncodedRequest",
             ".txt"
         );
@@ -125,7 +126,7 @@ contract SubmitAttestationRequest is Script {
         // Writing to a file
         Base.writeToFile(
             dirPath,
-            string.concat(attestationTypeName, "_votingRoundId"),
+            string.concat(contractName, "_votingRoundId"),
             Strings.toString(votingRoundId),
             true
         );
@@ -143,7 +144,7 @@ contract RetrieveDataAndProof is Script {
         string memory requestBytes = vm.readLine(
             string.concat(
                 dirPath,
-                attestationTypeName,
+                contractName,
                 "_abiEncodedRequest",
                 ".txt"
             )
@@ -151,7 +152,7 @@ contract RetrieveDataAndProof is Script {
         string memory votingRoundId = vm.readLine(
             string.concat(
                 dirPath,
-                attestationTypeName,
+                contractName,
                 "_votingRoundId",
                 ".txt"
             )
@@ -206,7 +207,7 @@ contract RetrieveDataAndProof is Script {
         // Writing proof to a file
         Base.writeToFile(
             dirPath,
-            string.concat(attestationTypeName, "_proof"),
+            string.concat(contractName, "_proof"),
             StringsBase.toHexString(abi.encode(_proof)),
             true
         );
@@ -225,7 +226,7 @@ contract DeployContract is Script {
 
         Base.writeToFile(
             dirPath,
-            string.concat(attestationTypeName, "_address"),
+            string.concat(contractName, "_address"),
             StringsBase.toHexString(abi.encodePacked(_address)),
             true
         );
@@ -235,11 +236,11 @@ contract DeployContract is Script {
 contract InteractWithContract is Script {
     function run() external {
         string memory addressString = vm.readLine(
-            string.concat(dirPath, attestationTypeName, "_address", ".txt")
+            string.concat(dirPath, contractName, "_address", ".txt")
         );
         address _address = vm.parseAddress(addressString);
         string memory proofString = vm.readLine(
-            string.concat(dirPath, attestationTypeName, "_proof", ".txt")
+            string.concat(dirPath, contractName, "_proof", ".txt")
         );
         bytes memory proofBytes = vm.parseBytes(proofString);
         IWeb2Json.Proof memory proof = abi.decode(

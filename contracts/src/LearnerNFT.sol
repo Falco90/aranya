@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.25;
 
+import {console} from "dependencies/forge-std-1.9.5/src/console.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
@@ -23,6 +24,12 @@ contract LearnerNFT is ERC721, ERC721URIStorage {
 
     mapping(uint256 => uint256) public tokenMilestones;
     mapping(uint256 => bool) public tokenExists;
+
+    struct DataTransportObject {
+        uint256 course_id;
+        string learner_id;
+        uint256 progress_percent;
+    }
 
     event LearnerNFTMinted(address indexed learner, uint256 indexed tokenId);
 
@@ -64,13 +71,16 @@ contract LearnerNFT is ERC721, ERC721URIStorage {
         require(ownerOf(tokenId) == msg.sender, "Not token owner");
         require(isJsonApiProofValid(proof), "Invalid proof");
 
-        uint256 newMilestone = abi.decode(
+        DataTransportObject memory dto = abi.decode(
             proof.data.responseBody.abiEncodedData,
-            (uint256)
+            (DataTransportObject)
         );
-        tokenMilestones[tokenId] = newMilestone;
 
-        emit MilestoneUpdated(msg.sender, tokenId, newMilestone);
+        if (dto.progress_percent == 100) {
+            tokenMilestones[tokenId] = 1;
+        }
+
+        emit MilestoneUpdated(msg.sender, tokenId, tokenMilestones[tokenId]);
     }
 
     // The following functions are overrides required by Solidity.
