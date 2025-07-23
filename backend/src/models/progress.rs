@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
 #[derive(Deserialize)]
-pub struct CourseProgressRequest {
+pub struct CourseProgressQuery {
     pub learner_id: String,
     pub course_id: i64,
 }

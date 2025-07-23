@@ -1,25 +1,8 @@
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
-use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
-use sqlx::{FromRow, Pool, Postgres};
+use sqlx::{Pool, Postgres};
 
-use crate::models::progress::LessonCompleteRequest;
-
-#[derive(Deserialize)]
-pub struct CourseProgressRequest {
-    pub learner_id: String,
-    pub course_id: i64,
-}
-
-#[derive(Serialize, FromRow)]
-pub struct CourseProgressResponse {
-    pub course_id: i64,
-    pub learner_id: String,
-    pub progress_percent: i32,
-    pub completed: bool,
-    pub last_accessed: Option<DateTime<Utc>>,
-}
+use crate::models::progress::{CourseProgressQuery, CourseProgressResponse, LessonCompleteRequest};
 
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
@@ -203,7 +186,7 @@ pub async fn complete_lesson(
 
 pub async fn get_course_progress(
     State(pool): State<Pool<Postgres>>,
-    Json(payload): Json<CourseProgressRequest>,
+    Query(params): Query<CourseProgressQuery>,
 ) -> Result<Json<CourseProgressResponse>, (StatusCode, String)> {
     let result: Option<CourseProgressResponse> = sqlx::query_as::<_, CourseProgressResponse>(
         r#"
@@ -217,8 +200,8 @@ pub async fn get_course_progress(
         WHERE course_id = $1 AND learner_id = $2
         "#,
     )
-    .bind(&payload.course_id)
-    .bind(&payload.learner_id)
+    .bind(&params.course_id)
+    .bind(&params.learner_id)
     .fetch_optional(&pool)
     .await
     .map_err(|e| {

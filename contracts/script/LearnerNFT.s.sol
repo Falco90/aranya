@@ -18,16 +18,16 @@ contract PrepareAttestationRequest is Script {
 
     // Setting request data
     // string public apiUrl = "https://swapi.dev/api/people/3/";
-    string public apiUrl = "https://swapi.info/api/people/3";
+    string public apiUrl = "https://localhost:4000/get-course-progress";
     string public httpMethod = "GET";
     // Defaults to "Content-Type": "application/json"
     string public headers = '{\\"Content-Type\\":\\"text/plain\\"}';
     string public queryParams = "{}";
     string public body = "{}";
     string public postProcessJq =
-        '{name: .name, height: .height, mass: .mass, numberOfFilms: .films | length, uid: (.url | split(\\"/\\") | .[-1] | tonumber)}';
+        '{course_id: .course_id, learner_id: .learner_id, progress_percent: .progress_percent}';
     string public abiSignature =
-        '{\\"components\\": [{\\"internalType\\": \\"string\\", \\"name\\": \\"name\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"height\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"mass\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"numberOfFilms\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"uid\\", \\"type\\": \\"uint256\\"}],\\"name\\": \\"task\\",\\"type\\": \\"tuple\\"}';
+        '{\\"components\\": [{\\"internalType\\": \\"uint256\\", \\"name\\": \\"course_id\\", \\"type\\": \\"uint256\\"},{\\"internalType\\": \\"string\\", \\"name\\": \\"learner_id\\", \\"type\\": \\"string\\"},{\\"internalType\\": \\"uint256\\", \\"name\\": \\"progress_percent\\", \\"type\\": \\"uint256\\"}],\\"name\\": \\"task\\",\\"type\\": \\"tuple\\"}';
 
     string public sourceName = "PublicWeb2";
 
