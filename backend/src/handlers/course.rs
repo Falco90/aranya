@@ -1,9 +1,9 @@
-use axum::{Json, extract::State, http::StatusCode, response::IntoResponse};
+use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
 use serde_json::json;
 use sqlx::{Pool, Postgres};
 use std::convert::TryInto;
 
-use crate::models::{course::Course, progress::JoinCourseRequest};
+use crate::models::{course::{Course, CourseQuery, NumCompletedResponse}, progress::JoinCourseRequest};
 pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<Course>,
@@ -164,4 +164,35 @@ pub async fn join_course(
         StatusCode::CREATED,
         Json(json!({ "message": "Course joined successfully", "course_id": &payload.course_id })),
     ))
+}
+
+pub async fn get_num_completed(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseQuery>,
+) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
+    let result: Option<NumCompletedResponse> = sqlx::query_as::<_, NumCompletedResponse>(
+        r#"
+        SELECT
+            num_completed
+        FROM course
+        WHERE id = $1
+        "#,
+    )
+    .bind(&params.course_id)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database error: {}", e),
+        )
+    })?;
+
+    match result {
+        Some(progress) => Ok(Json(progress)),
+        None => Err((
+            StatusCode::NOT_FOUND,
+            "Course not found".to_string(),
+        )),
+    }
 }

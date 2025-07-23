@@ -1,4 +1,5 @@
 use serde::{Deserialize, Serialize};
+use sqlx::FromRow;
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Course {
@@ -6,9 +7,21 @@ pub struct Course {
     pub description: String,
     pub creator_id: String,
     pub modules: Vec<Module>,
+    pub num_learners: i32,
+    pub num_completed: i32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+pub struct CourseQuery {
+    pub course_id: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
+pub struct NumCompletedResponse {
+    pub num_completed: i32,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
 pub struct Module {
     pub title: String,
     pub position: i32,
