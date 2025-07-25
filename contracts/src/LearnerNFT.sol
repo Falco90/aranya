@@ -3,6 +3,7 @@ pragma solidity ^0.8.25;
 
 import {console} from "dependencies/forge-std-1.9.5/src/console.sol";
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
+import "@openzeppelin/contracts/token/ERC721/IERC721.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC721URIStorage} from "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import {ContractRegistry} from "flare-periphery/src/coston2/ContractRegistry.sol";
@@ -104,5 +105,41 @@ contract LearnerNFT is ERC721, ERC721URIStorage {
         bytes4 interfaceId
     ) public view override(ERC721, ERC721URIStorage) returns (bool) {
         return super.supportsInterface(interfaceId);
+    }
+
+    function transferFrom(
+        address,
+        address,
+        uint256
+    ) public pure override(ERC721, IERC721) {
+        revert("Soulbound: Transfers disabled");
+    }
+
+    function safeTransferFrom(
+        address,
+        address,
+        uint256
+    ) public pure override(ERC721, IERC721) {
+        revert("Soulbound: Transfers disabled");
+    }
+
+    function safeTransferFrom(
+        address,
+        address,
+        uint256,
+        bytes memory
+    ) public pure override(ERC721, IERC721) {
+        revert("Soulbound: Transfers disabled");
+    }
+
+    function approve(address, uint256) public pure override(ERC721, IERC721) {
+        revert("Soulbound: Approvals disabled");
+    }
+
+    function setApprovalForAll(
+        address,
+        bool
+    ) public pure override(ERC721, IERC721) {
+        revert("Soulbound: Approvals disabled");
     }
 }
