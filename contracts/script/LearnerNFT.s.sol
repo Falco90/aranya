@@ -8,11 +8,11 @@ import {Base} from "./Base.s.sol";
 import {Base as StringsBase} from "src/utils/fdcStrings/Base.sol";
 import {IWeb2Json} from "dependencies/flare-periphery-0.1.33/src/coston2/IWeb2Json.sol";
 import {Surl} from "dependencies/surl-0.0.0/src/Surl.sol";
-import {ILearnerNFT, LearnerNFT} from "src/LearnerNFT.sol";
+import {ILearnerNFT, LearnerNFT} from "src/LearnerNFTImpl.sol";
 
 string constant attestationTypeName = "Web2Json";
 string constant contractName = "LearnerNFT";
-string constant dirPath = "data/";
+string constant dirPath = "data/learner/";
 
 contract PrepareAttestationRequest is Script {
     using Surl for *;
@@ -20,12 +20,12 @@ contract PrepareAttestationRequest is Script {
     // Setting request data
     // string public apiUrl = "https://swapi.dev/api/people/3/";
     string public apiUrl =
-        "https://e433e06bac25.ngrok-free.app/get-course-progress";
+        "https://42a4fff699b8.ngrok-free.app/get-course-progress";
     string public httpMethod = "GET";
     // Defaults to "Content-Type": "application/json"
     string public headers = '{\\"Content-Type\\":\\"application/json\\"}';
     string public queryParams =
-        '{\\"learner_id\\":\\"did:privy:cmd2wmiz80171kz0mmwjh1acf\\", \\"course_id\\":\\"4\\"}';
+        '{\\"learner_id\\":\\"did:privy:cmd2wmiz80171kz0mmwjh1acf\\", \\"course_id\\":\\"2\\"}';
     string public body = "{}";
     string public postProcessJq =
         "{course_id: .course_id, learner_id: .learner_id, progress_percent: .progress_percent}";
@@ -211,19 +211,14 @@ contract DeployContract is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        LearnerNFT learnerNFT = new LearnerNFT(
-            "TestCourse",
-            "Test",
-            4,
-            ["tokenURI1", "TokenURI2", "TokenURI3", "TokenURI4", "TokenURI5"]
-        );
+        LearnerNFT learnerNFT = new LearnerNFT();
         address _address = address(learnerNFT);
 
         vm.stopBroadcast();
 
         Base.writeToFile(
             dirPath,
-            string.concat(contractName, "_address"),
+            string.concat(contractName, "_impl_address"),
             StringsBase.toHexString(abi.encodePacked(_address)),
             true
         );
@@ -233,7 +228,7 @@ contract DeployContract is Script {
 contract InteractWithContract is Script {
     function run() external {
         string memory addressString = vm.readLine(
-            string.concat(dirPath, contractName, "_address", ".txt")
+            string.concat(dirPath, "Proxy_address", ".txt")
         );
         address _address = vm.parseAddress(addressString);
         string memory proofString = vm.readLine(
@@ -247,8 +242,7 @@ contract InteractWithContract is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
         ILearnerNFT learnerNFT = ILearnerNFT(_address);
-        uint256 tokenId = learnerNFT.mint(msg.sender);
-        learnerNFT.updateMilestone(tokenId, proof);
+        learnerNFT.updateMilestone(2, proof);
         vm.stopBroadcast();
     }
 }

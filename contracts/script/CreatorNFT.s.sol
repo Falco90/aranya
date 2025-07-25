@@ -8,11 +8,11 @@ import {Base} from "./Base.s.sol";
 import {Base as StringsBase} from "src/utils/fdcStrings/Base.sol";
 import {IWeb2Json} from "dependencies/flare-periphery-0.1.33/src/coston2/IWeb2Json.sol";
 import {Surl} from "dependencies/surl-0.0.0/src/Surl.sol";
-import {ICreatorNFT, CreatorNFT} from "src/CreatorNFT.sol";
+import {ICreatorNFT, CreatorNFT} from "src/CreatorNFTImpl.sol";
 
 string constant attestationTypeName = "Web2Json";
 string constant contractName = "CreatorNFT";
-string constant dirPath = "data/";
+string constant dirPath = "data/creator/";
 
 contract PrepareAttestationRequest is Script {
     using Surl for *;
@@ -209,21 +209,14 @@ contract DeployContract is Script {
         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
         vm.startBroadcast(deployerPrivateKey);
 
-        CreatorNFT creatorNFT = new CreatorNFT(
-            "Thai For Beginners",
-            "TestCourse",
-            "Test",
-            2,
-            ["tokenURI1", "TokenURI2", "TokenURI3", "TokenURI4", "TokenURI5"],
-            [1, 50, 100, 250, 500]
-        );
+        CreatorNFT creatorNFT = new CreatorNFT();
         address _address = address(creatorNFT);
 
         vm.stopBroadcast();
 
         Base.writeToFile(
             dirPath,
-            string.concat(contractName, "_address"),
+            string.concat(contractName, "_impl_address"),
             StringsBase.toHexString(abi.encodePacked(_address)),
             true
         );
@@ -233,9 +226,10 @@ contract DeployContract is Script {
 contract InteractWithContract is Script {
     function run() external {
         string memory addressString = vm.readLine(
-            string.concat(dirPath, contractName, "_address", ".txt")
+            string.concat(dirPath, "Proxy_address", ".txt")
         );
         address _address = vm.parseAddress(addressString);
+
         string memory proofString = vm.readLine(
             string.concat(dirPath, contractName, "_proof", ".txt")
         );
