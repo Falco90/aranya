@@ -10,8 +10,8 @@ export default function Home() {
         <h1>ARANYA</h1>
         <PrivyLoginButton />
         <CreateCourse />
-        <JoinCourse courseId={7}/>
-        <CompleteLessonButton lessonId={8} moduleId={4} courseId={5} />
+        <JoinCourse courseId={2}/>
+        <CompleteLessonButton lessonId={4} moduleId={2} courseId={2} />
 
         <button>Run migrations</button>
 
