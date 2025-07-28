@@ -14,3 +14,6 @@ tower-http = { version = "0.6.6", features = ["cors"]}
 alloy = "1.0.22"
 eyre = "0.6.12"
 chrono = { version = "0.4.41", features = ["serde"]}
+reqwest = "0.12.22"
+hex = "0.4.3"
+color-eyre = "0.6.5"

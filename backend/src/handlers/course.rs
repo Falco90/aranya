@@ -170,6 +170,7 @@ pub async fn get_num_completed(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
+    println!("Get num completed triggered");
     let result: Option<NumCompletedResponse> = sqlx::query_as::<_, NumCompletedResponse>(
         r#"
         SELECT
