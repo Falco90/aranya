@@ -1,20 +1,20 @@
-import React, { useState, createContext, useContext } from 'react';
+import React, { useState, createContext, useContext, ReactNode } from 'react';
 // Define types
-export type MultipleChoiceOption = {
+export type AnswerOption = {
   id: string;
-  text: string;
+  answerText: string;
   isCorrect: boolean;
 };
-export type QuizQuestion = {
+export type Question = {
   id: string;
-  question: string;
-  options: MultipleChoiceOption[];
+  questionText: string;
+  options: AnswerOption[];
 };
 export type Quiz = {
   id: string;
   title: string;
   description: string;
-  questions: QuizQuestion[];
+  questions: Question[];
 };
 export type Lesson = {
   id: string;
