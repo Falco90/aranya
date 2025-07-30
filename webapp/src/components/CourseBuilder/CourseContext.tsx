@@ -8,24 +8,23 @@ export type AnswerOption = {
 export type Question = {
   id: string;
   questionText: string;
-  options: AnswerOption[];
+  answers: AnswerOption[];
 };
 export type Quiz = {
   id: string;
-  title: string;
-  description: string;
   questions: Question[];
 };
 export type Lesson = {
   id: string;
   title: string;
   content: string;
+  position: number;
   videoUrl?: string;
 };
 export type Module = {
   id: string;
   title: string;
-  description: string;
+  position: number,
   lessons: Lesson[];
   quiz?: Quiz;
 };

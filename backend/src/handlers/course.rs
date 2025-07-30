@@ -3,10 +3,10 @@ use serde_json::json;
 use sqlx::{Pool, Postgres};
 use std::convert::TryInto;
 
-use crate::models::{course::{Course, CourseQuery, NumCompletedResponse}, progress::JoinCourseRequest};
+use crate::models::{course::{Course, CourseQuery, CreateCoursePayload, NumCompletedResponse}, progress::JoinCourseRequest};
 pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
-    Json(payload): Json<Course>,
+    Json(payload): Json<CreateCoursePayload>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     let mut tx = pool.begin().await.map_err(|e| {
         (
@@ -14,8 +14,6 @@ pub async fn create_course(
             format!("TX Failed to begin transaction: {}", e),
         )
     })?;
-
-    println!("payload: {:#?}", payload);
 
     // Ensure creator exists
     sqlx::query("INSERT INTO creator (id) VALUES ($1) ON CONFLICT DO NOTHING")

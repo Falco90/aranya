@@ -13,6 +13,7 @@ const LessonForm: React.FC = () => {
   const [content, setContent] = useState('');
   const [videoUrl, setVideoUrl] = useState('');
   const [isEditing, setIsEditing] = useState(false);
+  const [lessonPosition, setLessonPosition] = useState(1);
   const currentModule = course.modules.find(mod => mod.id === activeModule);
   useEffect(() => {
     if (!currentModule) {
@@ -57,8 +58,11 @@ const LessonForm: React.FC = () => {
         id: Date.now().toString(),
         title,
         content,
+        position: lessonPosition,
         videoUrl: videoUrl || undefined
       };
+
+      setLessonPosition(lessonPosition + 1);
       setCourse({
         ...course,
         modules: course.modules.map(mod => {
