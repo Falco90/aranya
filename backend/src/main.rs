@@ -9,7 +9,7 @@ use std::{error::Error, net::SocketAddr};
 use tokio::net::TcpListener;
 use tower_http::cors::{Any, CorsLayer};
 
-use routes::{attestation::attestation_routes, course::course_routes, progress::progress_routes};
+use routes::{course::course_routes, progress::progress_routes};
 
 #[tokio::main]
 async fn main() -> Result<(), Box<dyn Error>> {
@@ -23,7 +23,6 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let app = Router::new()
         .merge(course_routes(pool.clone()))
         .merge(progress_routes(pool.clone()))
-        .merge(attestation_routes(pool.clone()))
         .layer(cors);
 
     let addr = SocketAddr::from(([127, 0, 0, 1], 4000));
