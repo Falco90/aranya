@@ -1,9 +1,20 @@
-use axum::{extract::{Query, State}, http::StatusCode, response::IntoResponse, Json};
+use axum::{
+    Json,
+    extract::{Query, State},
+    http::StatusCode,
+    response::IntoResponse,
+};
 use serde_json::json;
 use sqlx::{Pool, Postgres};
-use std::convert::TryInto;
+use std::{collections::HashMap, convert::TryInto};
 
-use crate::models::{course::{Course, CourseQuery, CreateCoursePayload, NumCompletedResponse}, progress::JoinCourseRequest};
+use crate::models::{
+    course::{
+        AnswerOption, Course, CourseQuery, CreateCoursePayload, Lesson, Module,
+        NumCompletedResponse, Question, Quiz,
+    },
+    progress::JoinCourseRequest,
+};
 pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<CreateCoursePayload>,
@@ -168,7 +179,7 @@ pub async fn get_num_completed(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
-    println!("Get num completed triggered");
+    println!("params {:?}", params);
     let result: Option<NumCompletedResponse> = sqlx::query_as::<_, NumCompletedResponse>(
         r#"
         SELECT
@@ -178,6 +189,7 @@ pub async fn get_num_completed(
         "#,
     )
     .bind(&params.course_id)
+    // .bind(2)
     .fetch_optional(&pool)
     .await
     .map_err(|e| {
@@ -187,11 +199,230 @@ pub async fn get_num_completed(
         )
     })?;
 
+    println!("Result: {:?}", result);
+
     match result {
         Some(progress) => Ok(Json(progress)),
-        None => Err((
-            StatusCode::NOT_FOUND,
-            "Course not found".to_string(),
-        )),
+        None => Err((StatusCode::NOT_FOUND, "Course not found".to_string())),
     }
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct CourseRow {
+    title: String,
+    description: String,
+    creator_id: String,
+    num_learners: i32,
+    num_completed: i32,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct ModuleRow {
+    id: i64,
+    course_id: i64,
+    title: String,
+    position: i32,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct LessonRow {
+    id: i64,
+    module_id: i64,
+    title: String,
+    content: String,
+    video_url: Option<String>,
+    position: i32,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct QuizRow {
+    id: i64,
+    module_id: i64,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct QuestionRow {
+    id: i64,
+    quiz_id: i64,
+    question_text: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+struct AnswerOptionRow {
+    id: i64,
+    question_id: i64,
+    answer_text: String,
+    is_correct: bool,
+}
+
+pub async fn get_course(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseQuery>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let mut tx = pool.begin().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("TX Failed to begin transaction: {}", e),
+        )
+    })?;
+
+    let course_row: CourseRow = sqlx::query_as::<_, CourseRow>(
+        r#"
+    SELECT title, description, creator_id, num_learners, num_completed
+    FROM course
+    WHERE id = $1
+    "#,
+    )
+    .bind(&params.course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let module_rows: Vec<ModuleRow> = sqlx::query_as::<_, ModuleRow>(
+        r#"
+    SELECT id, course_id, title, position
+    FROM module
+    WHERE course_id = $1
+    "#,
+    )
+    .bind(&params.course_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let module_ids: Vec<i64> = module_rows.iter().map(|m| m.id).collect();
+
+    let lesson_rows: Vec<LessonRow> = sqlx::query_as::<_, LessonRow>(
+        r#"
+    SELECT id, module_id, title, content, video_url, position
+    FROM lesson
+    WHERE module_id = ANY($1)
+    "#,
+    )
+    .bind(&module_ids)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let quiz_rows: Vec<QuizRow> = sqlx::query_as::<_, QuizRow>(
+        r#"
+    SELECT id, module_id
+    FROM quiz
+    WHERE module_id = ANY($1)
+    "#,
+    )
+    .bind(&module_ids)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let quiz_ids: Vec<i64> = quiz_rows.iter().map(|q| q.id).collect();
+
+    let question_rows: Vec<QuestionRow> = sqlx::query_as::<_, QuestionRow>(
+        r#"
+    SELECT id, quiz_id, question_text
+    FROM question
+    WHERE quiz_id = ANY($1)
+    "#,
+    )
+    .bind(&quiz_ids)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let question_ids: Vec<i64> = question_rows.iter().map(|q| q.id).collect();
+
+    let answer_rows: Vec<AnswerOptionRow> = sqlx::query_as::<_, AnswerOptionRow>(
+        r#"
+    SELECT id, question_id, answer_text, is_correct
+    FROM answer_option
+    WHERE question_id = ANY($1)
+    "#,
+    )
+    .bind(&question_ids)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    tx.commit().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to commit transaction: {}", e),
+        )
+    })?;
+
+    // Group answers by question_id
+    let mut answers_by_question: HashMap<i64, Vec<AnswerOption>> = HashMap::new();
+    for a in answer_rows {
+        let answer = AnswerOption {
+            answer_text: a.answer_text,
+            is_correct: a.is_correct,
+        };
+        answers_by_question
+            .entry(a.question_id)
+            .or_default()
+            .push(answer);
+    }
+
+    // Group questions by quiz_id
+    let mut questions_by_quiz: HashMap<i64, Vec<Question>> = HashMap::new();
+    for q in question_rows {
+        let question = Question {
+            question_text: q.question_text,
+            answers: answers_by_question.remove(&q.id).unwrap_or_default(),
+        };
+        questions_by_quiz
+            .entry(q.quiz_id)
+            .or_default()
+            .push(question);
+    }
+
+    // Map quizzes by module_id
+    let mut quiz_by_module: HashMap<i64, Quiz> = HashMap::new();
+    for q in quiz_rows {
+        let quiz = Quiz {
+            questions: questions_by_quiz.remove(&q.id).unwrap_or_default(),
+        };
+        quiz_by_module.insert(q.module_id, quiz);
+    }
+
+    // Group lessons by module_id
+    let mut lessons_by_module: HashMap<i64, Vec<Lesson>> = HashMap::new();
+    for l in lesson_rows {
+        let lesson = Lesson {
+            title: l.title,
+            content: l.content,
+            video_url: l.video_url,
+            position: l.position,
+        };
+        lessons_by_module
+            .entry(l.module_id)
+            .or_default()
+            .push(lesson);
+    }
+
+    // Build modules from rows + grouped lessons/quizzes
+    let modules: Vec<Module> = module_rows
+        .into_iter()
+        .map(|m| Module {
+            title: m.title,
+            position: m.position,
+            lessons: lessons_by_module.remove(&m.id).unwrap_or_default(),
+            quiz: quiz_by_module
+                .remove(&m.id)
+                .unwrap_or(Quiz { questions: vec![] }),
+        })
+        .collect();
+
+    // Assemble final Course
+    let course = Course {
+        title: course_row.title,
+        description: course_row.description,
+        creator_id: course_row.creator_id,
+        num_learners: course_row.num_learners,
+        num_completed: course_row.num_completed,
+        modules,
+    };
+
+    Ok((StatusCode::OK, Json(course)))
 }
