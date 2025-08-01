@@ -209,6 +209,7 @@ pub async fn get_num_completed(
 
 #[derive(Debug, sqlx::FromRow)]
 struct CourseRow {
+    id: i64,
     title: String,
     description: String,
     creator_id: String,
@@ -268,7 +269,7 @@ pub async fn get_course(
 
     let course_row: CourseRow = sqlx::query_as::<_, CourseRow>(
         r#"
-    SELECT title, description, creator_id, num_learners, num_completed
+    SELECT id, title, description, creator_id, num_learners, num_completed
     FROM course
     WHERE id = $1
     "#,
@@ -355,6 +356,8 @@ pub async fn get_course(
     let mut answers_by_question: HashMap<i64, Vec<AnswerOption>> = HashMap::new();
     for a in answer_rows {
         let answer = AnswerOption {
+            id: a.id,
+            question_id: a.question_id,
             answer_text: a.answer_text,
             is_correct: a.is_correct,
         };
@@ -368,6 +371,8 @@ pub async fn get_course(
     let mut questions_by_quiz: HashMap<i64, Vec<Question>> = HashMap::new();
     for q in question_rows {
         let question = Question {
+            id: q.id,
+            quiz_id: q.quiz_id,
             question_text: q.question_text,
             answers: answers_by_question.remove(&q.id).unwrap_or_default(),
         };
@@ -381,6 +386,8 @@ pub async fn get_course(
     let mut quiz_by_module: HashMap<i64, Quiz> = HashMap::new();
     for q in quiz_rows {
         let quiz = Quiz {
+            id: q.id,
+            module_id: q.module_id,
             questions: questions_by_quiz.remove(&q.id).unwrap_or_default(),
         };
         quiz_by_module.insert(q.module_id, quiz);
@@ -390,6 +397,8 @@ pub async fn get_course(
     let mut lessons_by_module: HashMap<i64, Vec<Lesson>> = HashMap::new();
     for l in lesson_rows {
         let lesson = Lesson {
+            id: l.id,
+            module_id: l.module_id,
             title: l.title,
             content: l.content,
             video_url: l.video_url,
@@ -405,17 +414,22 @@ pub async fn get_course(
     let modules: Vec<Module> = module_rows
         .into_iter()
         .map(|m| Module {
+            id: m.id,
+            course_id: m.course_id,
             title: m.title,
             position: m.position,
             lessons: lessons_by_module.remove(&m.id).unwrap_or_default(),
-            quiz: quiz_by_module
-                .remove(&m.id)
-                .unwrap_or(Quiz { questions: vec![] }),
+            quiz: quiz_by_module.remove(&m.id).unwrap_or(Quiz {
+                id: 0,
+                module_id: m.id,
+                questions: vec![],
+            }),
         })
         .collect();
 
     // Assemble final Course
     let course = Course {
+        id: course_row.id,
         title: course_row.title,
         description: course_row.description,
         creator_id: course_row.creator_id,
