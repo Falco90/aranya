@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import CourseSidebar from './CourseSidebar';
 import LessonContent from './LessonContent';
+import QuizContent from './QuizContent';
 import { Course } from '../../types/course';
 
 interface CourseViewerProps {
@@ -10,6 +11,7 @@ const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
+  const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
   // Set initial active module and lesson
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
@@ -17,15 +19,29 @@ const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
       setActiveModuleId(firstModule.id);
       if (firstModule.lessons.length > 0) {
         setActiveLessonId(firstModule.lessons[0].id);
+        setActiveQuizId(null);
+      } else if (firstModule.quiz) {
+        setActiveLessonId(null);
+        setActiveQuizId(firstModule.quiz.id);
       }
     }
   }, [course, activeModuleId]);
   const activeModule = course.modules.find(m => m.id === activeModuleId);
   const activeLesson = activeModule?.lessons.find(l => l.id === activeLessonId);
+
+  const activeQuiz = activeModule?.quiz && activeModule.quiz.id === activeQuizId ? activeModule.quiz : null;
   const handleLessonChange = (moduleId: number, lessonId: number) => {
     setActiveModuleId(moduleId);
     setActiveLessonId(lessonId);
+    setActiveQuizId(null);
   };
+
+  const handleQuizSelect = (moduleId: number, quizId: number) => {
+    setActiveModuleId(moduleId);
+    setActiveLessonId(null);
+    setActiveQuizId(quizId);
+  }
+
   const getNextLesson = () => {
     if (!activeModule || !activeLessonId) return null;
     const currentLessonIndex = activeModule.lessons.findIndex(l => l.id === activeLessonId);
@@ -73,9 +89,11 @@ const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
     return null;
   };
   return <div className="flex h-screen bg-stone-50 overflow-hidden">
-    <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} onLessonSelect={handleLessonChange} />
+    <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} activeQuizId={activeQuizId} onLessonSelect={handleLessonChange} onQuizSelect={handleQuizSelect} />
     <div className="flex-1 overflow-auto">
-      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} /> : <div className="flex items-center justify-center h-full">
+      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} /> : activeQuiz ? (
+        <QuizContent quiz={activeQuiz} module={activeModule!} />
+      ) : <div className="flex items-center justify-center h-full">
         <div className="text-center p-8">
           <p className="text-stone-600">
             Select a lesson to begin learning

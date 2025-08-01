@@ -1,4 +1,3 @@
-// components/CourseViewer/CourseViewerClient.tsx
 "use client";
 
 import React from 'react';

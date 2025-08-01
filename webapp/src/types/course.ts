@@ -18,6 +18,12 @@ export interface Quiz {
     questions: Question[];
 }
 
+export type QuizResult = {
+    score: number
+    totalQuestions: number
+    answers: Record<number, number> // questionId -> selectedOptionId
+}
+
 export interface Lesson {
     id: number,
     moduleId: number,
