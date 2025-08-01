@@ -7,7 +7,45 @@ pub struct CreateCoursePayload {
     pub title: String,
     pub description: String,
     pub creator_id: String,
-    pub modules: Vec<Module>,
+    pub modules: Vec<CreateModulePayload>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateModulePayload {
+    pub title: String,
+    pub position: i32,
+    pub lessons: Vec<CreateLessonPayload>,
+    pub quiz: CreateQuizPayload
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateLessonPayload {
+    pub title: String,
+    pub content: String,
+    pub video_url: Option<String>,
+    pub position: i32
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateQuizPayload {
+    pub questions: Vec<CreateQuestionPayload>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateQuestionPayload{
+    pub question_text: String,
+    pub answers: Vec<CreateAnswerOptionPayload>
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreateAnswerOptionPayload {
+    pub answer_text: String,
+    pub is_correct: bool
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
