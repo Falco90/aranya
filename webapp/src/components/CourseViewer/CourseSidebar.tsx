@@ -1,11 +1,11 @@
 import React, { useState } from 'react';
-import { Course, Module } from '../CourseBuilder/CourseContext';
+import { Course, Module } from '../../types/course';
 import { ChevronDownIcon, ChevronRightIcon, BookIcon, LeafIcon, CheckCircleIcon } from 'lucide-react';
 interface CourseSidebarProps {
   course: Course;
-  activeModuleId: string | null;
-  activeLessonId: string | null;
-  onLessonSelect: (moduleId: string, lessonId: string) => void;
+  activeModuleId: number | null;
+  activeLessonId: number | null;
+  onLessonSelect: (moduleId: number, lessonId: number) => void;
 }
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
   course,
@@ -13,10 +13,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   activeLessonId,
   onLessonSelect
 }) => {
-  const [expandedModules, setExpandedModules] = useState<Record<string, boolean>>({
+  const [expandedModules, setExpandedModules] = useState<Record<number, boolean>>({
     [activeModuleId || '']: true
   });
-  const toggleModule = (moduleId: string) => {
+  const toggleModule = (moduleId: number) => {
     setExpandedModules(prev => ({
       ...prev,
       [moduleId]: !prev[moduleId]
@@ -51,7 +51,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                   </button>)}
                 {module.quiz && <button className="w-full px-3 py-2 text-sm rounded-md flex items-center text-left text-emerald-700 hover:bg-stone-50">
                     <CheckCircleIcon className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
-                    <span className="truncate">{module.quiz.title}</span>
                   </button>}
               </div>}
           </div>)}

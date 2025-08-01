@@ -1,18 +1,18 @@
 import React from 'react';
-import { Lesson, Module } from '../CourseBuilder/CourseContext';
+import { Lesson, Module } from '../../types/course';
 import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon } from 'lucide-react';
 interface LessonContentProps {
   lesson: Lesson;
   module: Module | undefined;
   nextLesson: {
-    moduleId: string;
-    lessonId: string;
+    moduleId: number;
+    lessonId: number;
   } | null;
   previousLesson: {
-    moduleId: string;
-    lessonId: string;
+    moduleId: number;
+    lessonId: number;
   } | null;
-  onNavigate: (moduleId: string, lessonId: string) => void;
+  onNavigate: (moduleId: number, lessonId: number) => void;
 }
 const LessonContent: React.FC<LessonContentProps> = ({
   lesson,
