@@ -262,7 +262,7 @@ pub async fn get_course(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let mut tx = pool.begin().await.map_err(|e| {
+    let tx = pool.begin().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
             format!("TX Failed to begin transaction: {}", e),
