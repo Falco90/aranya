@@ -60,6 +60,13 @@ pub struct Course {
     pub num_completed: i32,
 }
 
+#[derive(Deserialize, Debug)]
+#[serde(rename_all = "camelCase")]
+pub struct JoinCourseRequest {
+    pub learner_id: String,
+    pub course_id: i64,
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CourseQuery {

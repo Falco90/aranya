@@ -11,9 +11,8 @@ use std::{collections::HashMap, convert::TryInto};
 use crate::models::{
     course::{
         AnswerOption, Course, CourseQuery, CreateCoursePayload, Lesson, Module,
-        NumCompletedResponse, Question, Quiz,
+        NumCompletedResponse, Question, Quiz, JoinCourseRequest
     },
-    progress::JoinCourseRequest,
 };
 
 pub async fn create_course(
@@ -144,14 +143,14 @@ pub async fn join_course(
 
     // Ensure learner exists
     sqlx::query("INSERT INTO learner (id) VALUES ($1) ON CONFLICT DO NOTHING")
-        .bind(&payload.privy_id)
+        .bind(&payload.learner_id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
     // Insert enrollment
     let result = sqlx::query(
-        "INSERT INTO learner_course_enrollment (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",).bind(&payload.privy_id).bind(&payload.course_id)
+        "INSERT INTO learner_course_enrollment (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",).bind(&payload.learner_id).bind(&payload.course_id)
     .execute(&mut *tx)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
