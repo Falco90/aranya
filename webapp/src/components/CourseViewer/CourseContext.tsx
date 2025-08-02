@@ -50,7 +50,14 @@ export const CourseViewerProvider: React.FC<{
     const [activeModule, setActiveModule] = useState<number | null>(null)
     const [activeLesson, setActiveLesson] = useState<number | null>(null)
     const [activeQuiz, setActiveQuiz] = useState<number | null>(null)
-    const [progress, setProgress] = useState<Progress>(initialProgress)
+    const [progress, setProgress] = useState<Progress>({
+        completedLessons: completedLessonIds.reduce((acc, id) => {
+            acc[id] = true
+            return acc
+        }, {} as Record<number, boolean>),
+        completedQuizzes: {},
+        quizResults: {},
+    })
     // Progress tracking functions
     const markLessonComplete = (lessonId: number) => {
         setProgress((prev) => ({
