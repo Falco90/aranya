@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode } from 'react'
-import { Course, Module, Lesson, Quiz, Question, AnswerOption} from '../../types/course';
+import { Course } from '../../types/course';
 
 // Define progress tracking types
 export type Progress = {
@@ -44,8 +44,9 @@ const CourseViewerContext = createContext<
 // Create provider
 export const CourseViewerProvider: React.FC<{
     children: ReactNode,
-    course: Course
-}> = ({ children, course }) => {
+    course: Course,
+    completedLessonIds: number[]
+}> = ({ children, course, completedLessonIds }) => {
     const [activeModule, setActiveModule] = useState<number | null>(null)
     const [activeLesson, setActiveLesson] = useState<number | null>(null)
     const [activeQuiz, setActiveQuiz] = useState<number | null>(null)

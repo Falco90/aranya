@@ -7,11 +7,12 @@ import { Course } from '../../types/course';
 
 interface Props {
     course: Course;
+    completedLessonIds: number[];
 }
 
-const CourseViewerClient: React.FC<Props> = ({ course }) => {
+const CourseViewerClient: React.FC<Props> = ({ course, completedLessonIds }) => {
     return (
-        <CourseViewerProvider course={course}>
+        <CourseViewerProvider course={course} completedLessonIds={completedLessonIds}>
             <CourseViewerLayout />
         </CourseViewerProvider>
     );
