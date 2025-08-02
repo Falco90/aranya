@@ -40,9 +40,26 @@ const CourseViewerLayout: React.FC = () => {
     setActiveQuizId(quizId);
   }
 
-  const handleLessonComplete = () => {
+  const handleLessonComplete = async () => {
     if (activeLesson) {
       markLessonComplete(activeLesson.id)
+
+      try {
+        await fetch('http://localhost:4000/complete-lesson', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            lessonId: activeLesson.id,
+            learnerId: 'did:privy:cmd2wmiz80171kz0mmwjh1acf', // or get from context/auth
+          }),
+        });
+      } catch (err) {
+        console.error("Failed to sync lesson completion:", err);
+        // optionally: revert local change, show error to user
+      }
+
       // If there's a next lesson, go to it
       const nextLesson = getNextLesson()
       if (nextLesson) {
@@ -64,6 +81,7 @@ const CourseViewerLayout: React.FC = () => {
   const getNextLesson = () => {
     if (!activeModule || !activeLessonId) return null;
     const currentLessonIndex = activeModule.lessons.findIndex(l => l.id === activeLessonId);
+
     // If there's another lesson in this module
     if (currentLessonIndex < activeModule.lessons.length - 1) {
       return {
@@ -71,7 +89,11 @@ const CourseViewerLayout: React.FC = () => {
         lessonId: activeModule.lessons[currentLessonIndex + 1].id
       };
     }
-    // Check for next module
+    return null;
+  };
+
+  const getNextModule = () => {
+    if (!activeModule || !activeQuizId) return null;
     const currentModuleIndex = course.modules.findIndex(m => m.id === activeModuleId);
     if (currentModuleIndex < course.modules.length - 1) {
       const nextModule = course.modules[currentModuleIndex + 1];
@@ -83,7 +105,8 @@ const CourseViewerLayout: React.FC = () => {
       }
     }
     return null;
-  };
+  }
+
   const getPreviousLesson = () => {
     if (!activeModule || !activeLessonId) return null;
     const currentLessonIndex = activeModule.lessons.findIndex(l => l.id === activeLessonId);
@@ -110,8 +133,8 @@ const CourseViewerLayout: React.FC = () => {
   return <div className="flex h-screen bg-stone-50 overflow-hidden">
     <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} activeQuizId={activeQuizId} onLessonSelect={handleLessonChange} onQuizSelect={handleQuizSelect} />
     <div className="flex-1 overflow-auto">
-      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} onComplete={handleLessonComplete}/> : activeQuiz ? (
-        <QuizContent quiz={activeQuiz} module={activeModule!} onComplete={handleQuizComplete} existingResult={getQuizResult(activeQuiz.id)}/>
+      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} onComplete={handleLessonComplete} /> : activeQuiz ? (
+        <QuizContent quiz={activeQuiz} module={activeModule!} onComplete={handleQuizComplete} existingResult={getQuizResult(activeQuiz.id)} />
       ) : <div className="flex items-center justify-center h-full">
         <div className="text-center p-8">
           <p className="text-stone-600">

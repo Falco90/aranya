@@ -29,10 +29,8 @@ pub struct JoinCourseRequest {
 #[derive(Deserialize, Debug)]
 #[serde(rename_all = "camelCase")]
 pub struct LessonCompleteRequest {
-    pub privy_id: String,
+    pub learner_id: String,
     pub lesson_id: i64,
-    pub module_id: i64,
-    pub course_id: i64,
 }
 
 #[derive(Serialize, Deserialize, Debug)]
