@@ -5,9 +5,12 @@ use axum::{
     response::IntoResponse,
 };
 use serde_json::json;
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
-use crate::models::progress::{CourseProgressQuery, CourseProgressResponse, LessonCompleteRequest};
+use crate::models::progress::{
+    CompletedLessonsQuery, CompletedLessonsResponse, CourseProgressQuery, CourseProgressResponse,
+    LessonCompleteRequest,
+};
 
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
@@ -231,4 +234,36 @@ pub async fn get_course_progress(
             "Course progress not found for learner".to_string(),
         )),
     }
+}
+
+pub async fn get_completed_lesson_ids(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CompletedLessonsQuery>,
+) -> Result<Json<CompletedLessonsResponse>, (StatusCode, String)> {
+    let rows: Vec<PgRow> = sqlx::query(
+        r#"
+        SELECT l.id
+        FROM lesson l
+        JOIN module m ON l.module_id = m.id
+        JOIN lesson_progress lc ON lc.lesson_id = l.id
+        WHERE m.course_id = $1 AND lc.learner_id = $2
+        "#,
+    )
+    .bind(&params.course_id)
+    .bind(&params.learner_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database error: {}", e),
+        )
+    })?;
+
+    let lesson_ids: Vec<i64> = rows
+        .into_iter()
+        .filter_map(|row| row.try_get::<i64, _>("id").ok())
+        .collect();
+
+    Ok(Json(CompletedLessonsResponse { lesson_ids }))
 }
