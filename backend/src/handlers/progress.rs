@@ -8,8 +8,7 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
 use crate::models::progress::{
-    CompletedLessonsQuery, CompletedLessonsResponse, CourseProgressQuery, CourseProgressResponse,
-    LessonCompleteRequest,
+    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseProgressQuery, CourseProgressResponse, LessonCompleteRequest, ModuleCompleteRequest
 };
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
@@ -17,7 +16,7 @@ pub async fn complete_lesson(
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
     sqlx::query(
         r#"
-        INSERT INTO lesson_progress (learner_id, lesson_id)
+        INSERT INTO lesson_completion (learner_id, lesson_id)
         VALUES ($1, $2)
         ON CONFLICT DO NOTHING
         "#,
@@ -37,6 +36,102 @@ pub async fn complete_lesson(
         StatusCode::CREATED,
         Json(json!({ "message": "Lesson marked complete" })),
     ))
+}
+
+pub async fn complete_module(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<ModuleCompleteRequest>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    // Count all lessons in the module
+    let total: i64 = sqlx::query_scalar(r#"SELECT COUNT(*) FROM lesson WHERE module_id = $1"#)
+        .bind(&payload.module_id)
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("Failed to count lessons: {}", e),
+            )
+        })?;
+
+    // Count completed lessons by the learner
+    let completed: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*) FROM lesson_completion lp
+        JOIN lesson l ON lp.lesson_id = l.id
+        WHERE lp.learner_id = $1 AND l.module_id = $2
+        "#,
+    )
+    .bind(&payload.learner_id)
+    .bind(&payload.module_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to count completed lessons: {}", e),
+        )
+    })?;
+
+    if total == 0 || completed < total {
+        return Err((
+            StatusCode::BAD_REQUEST,
+            "Not all lessons in module are completed".to_string(),
+        ));
+    }
+
+    sqlx::query(
+        r#"
+        INSERT INTO module_completion (learner_id, module_id)
+        VALUES ($1, $2)
+        ON CONFLICT DO NOTHING
+        "#,
+    )
+    .bind(&payload.learner_id)
+    .bind(&payload.module_id)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to insert module completion table: {}", e),
+        )
+    })?;
+
+    Ok((
+        StatusCode::CREATED,
+        Json(json!({ "message": "Module marked complete" })),
+    ))
+}
+
+pub async fn complete_quiz(
+    State(pool): State<Pool<Postgres>>,
+    Json(payload): Json<CompleteQuizPayload>,
+) -> Result<StatusCode, (StatusCode, String)> {
+    sqlx::query(
+        r#"
+        INSERT INTO quiz_completion (quiz_id, learner_id, score, total_questions)
+        VALUES ($1, $2, $3, $4)
+        ON CONFLICT (quiz_id, learner_id) DO UPDATE
+        SET score = EXCLUDED.score,
+            total_questions = EXCLUDED.total_questions,
+            completed_at = now()
+        "#,
+    )
+    .bind(payload.quiz_id)
+    .bind(&payload.learner_id)
+    .bind(payload.score)
+    .bind(payload.total_questions)
+    .execute(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("DB error: {}", e),
+        )
+    })?;
+
+    Ok(StatusCode::OK)
 }
 
 pub async fn get_course_progress(
@@ -84,7 +179,7 @@ pub async fn get_completed_lesson_ids(
         SELECT l.id
         FROM lesson l
         JOIN module m ON l.module_id = m.id
-        JOIN lesson_progress lc ON lc.lesson_id = l.id
+        JOIN lesson_completion lc ON lc.lesson_id = l.id
         WHERE m.course_id = $1 AND lc.learner_id = $2
         "#,
     )
