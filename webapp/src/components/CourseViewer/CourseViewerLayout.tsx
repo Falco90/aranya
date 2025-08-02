@@ -1,13 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useCourseViewer } from './CourseContext';
 import CourseSidebar from './CourseSidebar';
 import LessonContent from './LessonContent';
 import QuizContent from './QuizContent';
-import { Course } from '../../types/course';
 
-interface CourseViewerProps {
-  course: Course;
-}
-const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
+const CourseViewerLayout: React.FC = () => {
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted } = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
@@ -40,6 +38,27 @@ const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
     setActiveModuleId(moduleId);
     setActiveLessonId(null);
     setActiveQuizId(quizId);
+  }
+
+  const handleLessonComplete = () => {
+    if (activeLesson) {
+      markLessonComplete(activeLesson.id)
+      // If there's a next lesson, go to it
+      const nextLesson = getNextLesson()
+      if (nextLesson) {
+        handleLessonChange(nextLesson.moduleId, nextLesson.lessonId)
+      }
+      // If there's no next lesson but there's a quiz in this module, go to it
+      else if (activeModule?.quiz) {
+        handleQuizSelect(activeModule.id, activeModule.quiz.id)
+      }
+    }
+  }
+
+  const handleQuizComplete = (result: any) => {
+    if (activeQuiz) {
+      markQuizComplete(activeQuiz.id, result)
+    }
   }
 
   const getNextLesson = () => {
@@ -91,8 +110,8 @@ const CourseViewerLayout: React.FC<CourseViewerProps> = ({ course }) => {
   return <div className="flex h-screen bg-stone-50 overflow-hidden">
     <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} activeQuizId={activeQuizId} onLessonSelect={handleLessonChange} onQuizSelect={handleQuizSelect} />
     <div className="flex-1 overflow-auto">
-      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} /> : activeQuiz ? (
-        <QuizContent quiz={activeQuiz} module={activeModule!} />
+      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} onComplete={handleLessonComplete}/> : activeQuiz ? (
+        <QuizContent quiz={activeQuiz} module={activeModule!} onComplete={handleQuizComplete} existingResult={getQuizResult(activeQuiz.id)}/>
       ) : <div className="flex items-center justify-center h-full">
         <div className="text-center p-8">
           <p className="text-stone-600">

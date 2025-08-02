@@ -1,6 +1,6 @@
 import React from 'react';
 import { Lesson, Module } from '../../types/course';
-import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon } from 'lucide-react';
+import { ArrowLeftIcon, ArrowRightIcon, BookOpenIcon, CheckIcon } from 'lucide-react';
 interface LessonContentProps {
   lesson: Lesson;
   module: Module | undefined;
@@ -13,13 +13,15 @@ interface LessonContentProps {
     lessonId: number;
   } | null;
   onNavigate: (moduleId: number, lessonId: number) => void;
+  onComplete: () => void;
 }
 const LessonContent: React.FC<LessonContentProps> = ({
   lesson,
   module,
   nextLesson,
   previousLesson,
-  onNavigate
+  onNavigate,
+  onComplete
 }) => {
   return <div className="max-w-3xl mx-auto px-6 py-8">
     <div className="mb-6">
@@ -44,6 +46,14 @@ const LessonContent: React.FC<LessonContentProps> = ({
       </button> : <div />
 
       }
+      <button
+        onClick={onComplete}
+        className="flex items-center px-4 py-2 text-sm font-medium text-white bg-emerald-700 rounded-md hover:bg-emerald-800"
+      >
+        <CheckIcon className="h-4 w-4 mr-2" />
+        Mark as Complete
+      </button>
+
       {nextLesson ? <button onClick={() => onNavigate(nextLesson.moduleId, nextLesson.lessonId)} className="flex items-center px-4 py-2 text-sm font-medium text-white bg-amber-700 rounded-md hover:bg-amber-800">
         Next Lesson
         <ArrowRightIcon className="h-4 w-4 ml-2" />

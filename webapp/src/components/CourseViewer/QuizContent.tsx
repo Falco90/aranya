@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { Quiz, Module, QuizResult} from '../../types/course';
+import { Quiz, Module, QuizResult } from '../../types/course';
 import {
   CheckCircleIcon,
   XCircleIcon,
@@ -9,11 +9,13 @@ import {
 interface QuizContentProps {
   quiz: Quiz
   module: Module
+  onComplete: (result: QuizResult) => void
   existingResult?: QuizResult | null
 }
 const QuizContent: React.FC<QuizContentProps> = ({
   quiz,
   module,
+  onComplete,
   existingResult,
 }) => {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
@@ -60,8 +62,9 @@ const QuizContent: React.FC<QuizContentProps> = ({
         ...selectedAnswers,
       },
     }
-    setQuizResult(result)
-    setShowResults(true)
+    setQuizResult(result);
+    setShowResults(true);
+    onComplete(result);
   }
   const resetQuiz = () => {
     setSelectedAnswers({})

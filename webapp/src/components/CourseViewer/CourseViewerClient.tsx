@@ -1,7 +1,7 @@
 "use client";
 
 import React from 'react';
-import { CourseBuilderProvider } from '../CourseBuilder/CourseContext';
+import { CourseViewerProvider } from '../CourseViewer/CourseContext';
 import CourseViewerLayout from './CourseViewerLayout';
 import { Course } from '../../types/course';
 
@@ -11,9 +11,9 @@ interface Props {
 
 const CourseViewerClient: React.FC<Props> = ({ course }) => {
     return (
-        <CourseBuilderProvider>
-            <CourseViewerLayout course={course} />
-        </CourseBuilderProvider>
+        <CourseViewerProvider course={course}>
+            <CourseViewerLayout />
+        </CourseViewerProvider>
     );
 };
 
