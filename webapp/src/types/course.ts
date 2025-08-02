@@ -51,3 +51,9 @@ export interface Course {
     numCompleted: number;
     modules: Module[];
 }
+
+export type Progress = {
+    completedLessons: Record<number, boolean>
+    completedQuizzes: Record<number, boolean>
+    quizResults: Record<number, QuizResult>
+}

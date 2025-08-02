@@ -3,9 +3,10 @@ import { useCourseViewer } from './CourseContext';
 import CourseSidebar from './CourseSidebar';
 import LessonContent from './LessonContent';
 import QuizContent from './QuizContent';
+import { QuizResult } from '@/types/course';
 
 const CourseViewerLayout: React.FC = () => {
-  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted } = useCourseViewer();
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted} = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
@@ -44,6 +45,8 @@ const CourseViewerLayout: React.FC = () => {
     if (activeLesson) {
       markLessonComplete(activeLesson.id)
 
+      const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
+
       try {
         await fetch('http://localhost:4000/complete-lesson', {
           method: 'POST',
@@ -52,7 +55,7 @@ const CourseViewerLayout: React.FC = () => {
           },
           body: JSON.stringify({
             lessonId: activeLesson.id,
-            learnerId: 'did:privy:cmd2wmiz80171kz0mmwjh1acf', // or get from context/auth
+            learnerId: learnerId, // or get from context/auth
           }),
         });
       } catch (err) {
@@ -63,7 +66,7 @@ const CourseViewerLayout: React.FC = () => {
       // If there's a next lesson, go to it
       const nextLesson = getNextLesson()
       if (nextLesson) {
-        handleLessonChange(nextLesson.moduleId, nextLesson.lessonId)
+        // handleLessonChange(nextLesson.moduleId, nextLesson.lessonId)
       }
       // If there's no next lesson but there's a quiz in this module, go to it
       else if (activeModule?.quiz) {
@@ -72,9 +75,33 @@ const CourseViewerLayout: React.FC = () => {
     }
   }
 
-  const handleQuizComplete = (result: any) => {
+  const handleQuizComplete = async (result: QuizResult) => {
     if (activeQuiz) {
-      markQuizComplete(activeQuiz.id, result)
+
+      const percentScore = Math.round(
+        (result.score / result.totalQuestions) * 100,
+      )
+      const passed = percentScore >= 70
+
+      if (passed) {
+        markQuizComplete(activeQuiz.id, result);
+
+        const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
+        try {
+          await fetch('http://localhost:4000/complete-quiz', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              quizId: activeQuiz.id,
+              learnerId: learnerId,  // from session/context
+              score: result.score,
+              totalQuestions: result.totalQuestions,
+            }),
+          });
+        } catch (err) {
+          console.error("Failed to sync quiz/module completion:", err);
+        }
+      }
     }
   }
 

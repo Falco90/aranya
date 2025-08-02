@@ -1,24 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode } from 'react'
-import { Course } from '../../types/course';
-
-// Define progress tracking types
-export type Progress = {
-    completedLessons: Record<number, boolean>
-    completedQuizzes: Record<number, boolean>
-    quizResults: Record<number, QuizResult>
-}
-export type QuizResult = {
-    score: number
-    totalQuestions: number
-    answers: Record<number, number> // questionId -> selectedOptionId
-}
-
-// Initial progress state
-const initialProgress: Progress = {
-    completedLessons: {},
-    completedQuizzes: {},
-    quizResults: {},
-}
+import { Course, QuizResult, Progress } from '../../types/course';
 // Define context type
 type CourseViewerContextType = {
     course: Course

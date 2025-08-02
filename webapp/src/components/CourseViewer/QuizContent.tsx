@@ -169,7 +169,8 @@ const QuizContent: React.FC<QuizContentProps> = ({
                 )
               })}
             </div>
-            <div className="flex justify-center">
+            {passed ? <div className="flex justify-center">
+              <p className="flex items-center px-4 py-2 text-sm font-medium text-white bg-amber-700 rounded-md hover:bg-amber-800">Module Completed!</p></div> : <div className="flex justify-center">
               <button
                 onClick={resetQuiz}
                 className="flex items-center px-4 py-2 text-sm font-medium text-white bg-amber-700 rounded-md hover:bg-amber-800"
@@ -177,7 +178,7 @@ const QuizContent: React.FC<QuizContentProps> = ({
                 <div className="h-4 w-4 mr-2" />
                 Retake Quiz
               </button>
-            </div>
+            </div>}
           </div>
         </div>
       </div>
