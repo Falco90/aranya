@@ -16,7 +16,7 @@ pub struct CreateModulePayload {
     pub title: String,
     pub position: i32,
     pub lessons: Vec<CreateLessonPayload>,
-    pub quiz: CreateQuizPayload
+    pub quiz: Option<CreateQuizPayload>
 }
 
 #[derive(Debug, Deserialize, Serialize)]

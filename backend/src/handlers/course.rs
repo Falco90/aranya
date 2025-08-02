@@ -15,6 +15,7 @@ use crate::models::{
     },
     progress::JoinCourseRequest,
 };
+
 pub async fn create_course(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<CreateCoursePayload>,
@@ -82,25 +83,26 @@ pub async fn create_course(
             .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
         }
 
-        let quiz_id: i64 =
-            sqlx::query_scalar("INSERT INTO quiz (module_id) VALUES ($1) RETURNING id")
-                .bind(module_id)
+        if let Some(quiz) = &module.quiz {
+            let quiz_id: i64 =
+                sqlx::query_scalar("INSERT INTO quiz (module_id) VALUES ($1) RETURNING id")
+                    .bind(module_id)
+                    .fetch_one(&mut *tx)
+                    .await
+                    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+            for question in &quiz.questions {
+                let question_id: i64 = sqlx::query_scalar(
+                    "INSERT INTO question (question_text, quiz_id) VALUES ($1, $2) RETURNING id",
+                )
+                .bind(&question.question_text)
+                .bind(quiz_id)
                 .fetch_one(&mut *tx)
                 .await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-        for question in &module.quiz.questions {
-            let question_id: i64 = sqlx::query_scalar(
-                "INSERT INTO question (question_text, quiz_id) VALUES ($1, $2) RETURNING id",
-            )
-            .bind(&question.question_text)
-            .bind(quiz_id)
-            .fetch_one(&mut *tx)
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-            for answer in &question.answers {
-                sqlx::query(
+                for answer in &question.answers {
+                    sqlx::query(
                     "INSERT INTO answer_option (answer_text, is_correct, question_id) VALUES ($1, $2, $3)",
                 )
                 .bind(&answer.answer_text)
@@ -109,6 +111,7 @@ pub async fn create_course(
                 .execute(&mut *tx)
                 .await
                 .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+                }
             }
         }
     }
