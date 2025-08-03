@@ -1,24 +1,31 @@
-import CreateCourse from "@/components/CreateCourse";
-import JoinCourse from "@/components/JoinCourse";
-import PrivyLoginButton from "@/components/PrivyLoginButton";
-import CompleteLessonButton from "@/components/CompleteLessonButton";
-
-export default function Home() {
-  return (
-    <div className="grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20 font-[family-name:var(--font-geist-sans)]">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <h1>ARANYA</h1>
-        <PrivyLoginButton />
-        <CreateCourse />
-        <JoinCourse courseId={2}/>
-        <CompleteLessonButton lessonId={4} moduleId={2} courseId={2} />
-
-        <button>Run migrations</button>
-
-
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-      </footer>
-    </div>
-  );
+import React from 'react';
+import Navbar from '../components/Landing/Navbar';
+import HeroSection from '../components/Landing/HeroSection';
+import HowItWorks from '../components/Landing/HowItWorks';
+import CoursePreviewSection from '../components/Landing/CoursePreviewSection';
+import ProfilesSection from '../components/Landing/ProfilesSection';
+import FAQSection from '../components/Landing/FAQSection';
+import Footer from '../components/Landing/Footer';
+interface LandingPageProps {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
 }
+const LandingPage: React.FC<LandingPageProps> = ({
+  isLoggedIn,
+  onLogin,
+  onLogout
+}) => {
+  return <div className="min-h-screen flex flex-col bg-stone-50">
+    <Navbar isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
+    <main>
+      <HeroSection isLoggedIn={isLoggedIn} onLogin={onLogin} />
+      <HowItWorks />
+      <CoursePreviewSection />
+      <ProfilesSection />
+      <FAQSection />
+    </main>
+    <Footer />
+  </div>;
+};
+export default LandingPage;

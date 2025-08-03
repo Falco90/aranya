@@ -1,0 +1,77 @@
+import React from 'react';
+import Link from "next/link"
+import { BookOpenIcon, PlusIcon } from 'lucide-react';
+interface HeroSectionProps {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+}
+const HeroSection: React.FC<HeroSectionProps> = ({
+  isLoggedIn,
+  onLogin
+}) => {
+  return <div className="bg-gradient-to-br from-amber-50 to-stone-100 py-16 sm:py-24">
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
+          <div>
+            <h1 className="text-4xl font-bold text-stone-800 sm:text-5xl md:text-6xl">
+              Learn and teach with{' '}
+              <span className="text-amber-700">Aranya</span>
+            </h1>
+            <p className="mt-6 text-xl text-stone-600 max-w-3xl">
+              Discover a platform that connects passionate educators with
+              curious learners. Create interactive courses or expand your
+              knowledge with our growing library.
+            </p>
+            <div className="mt-10 flex gap-4">
+              {isLoggedIn ? <>
+                  <Link href="/builder" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    <PlusIcon className="h-5 w-5 mr-2" />
+                    Create a Course
+                  </Link>
+                  <Link href="/view" className="inline-flex items-center px-6 py-3 border border-stone-200 text-base font-medium rounded-md text-stone-700 bg-white hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    <BookOpenIcon className="h-5 w-5 mr-2" />
+                    Find Courses
+                  </Link>
+                </> : <>
+                  <button onClick={onLogin} className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    Get Started
+                  </button>
+                  <Link href="/view" className="inline-flex items-center px-6 py-3 border border-stone-200 text-base font-medium rounded-md text-stone-700 bg-white hover:bg-stone-50 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+                    Explore Courses
+                  </Link>
+                </>}
+            </div>
+          </div>
+          <div className="mt-12 lg:mt-0">
+            <div className="pl-4 sm:pl-6 lg:pl-0 lg:relative lg:h-full">
+              <div className="max-w-md mx-auto lg:max-w-none">
+                <div className="relative rounded-lg shadow-xl overflow-hidden">
+                  <img className="w-full" src="https://images.unsplash.com/photo-1522202176988-66273c2fd55f?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1742&q=80" alt="Students collaborating" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-amber-700/30 to-transparent mix-blend-multiply" />
+                </div>
+                <div className="mt-4 grid grid-cols-2 gap-4">
+                  <div className="bg-white p-4 rounded-lg shadow border border-stone-200">
+                    <div className="text-amber-700 font-bold text-3xl">
+                      10k+
+                    </div>
+                    <div className="text-stone-600 text-sm">
+                      Active Learners
+                    </div>
+                  </div>
+                  <div className="bg-white p-4 rounded-lg shadow border border-stone-200">
+                    <div className="text-amber-700 font-bold text-3xl">
+                      500+
+                    </div>
+                    <div className="text-stone-600 text-sm">
+                      Quality Courses
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>;
+};
+export default HeroSection;
