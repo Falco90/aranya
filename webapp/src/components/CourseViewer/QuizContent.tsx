@@ -7,7 +7,7 @@ import {
   AwardIcon,
 } from 'lucide-react'
 interface QuizContentProps {
-  quiz: Quiz
+  quiz: Quiz | null
   module: Module
   onComplete: (result: QuizResult) => void
   existingResult?: QuizResult | null
@@ -18,6 +18,7 @@ const QuizContent: React.FC<QuizContentProps> = ({
   onComplete,
   existingResult,
 }) => {
+  if (quiz) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)
   const [selectedAnswers, setSelectedAnswers] = useState<
     Record<number, number>
@@ -245,5 +246,6 @@ const QuizContent: React.FC<QuizContentProps> = ({
       </div>
     </div>
   )
+}
 }
 export default QuizContent
