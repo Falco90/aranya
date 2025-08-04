@@ -6,11 +6,12 @@ import QuizContent from './QuizContent';
 import { QuizResult } from '@/types/course';
 
 const CourseViewerLayout: React.FC = () => {
-  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isModuleCompleted } = useCourseViewer();
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted,isModuleCompleted } = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // Set initial active module and lesson
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
@@ -42,38 +43,42 @@ const CourseViewerLayout: React.FC = () => {
   }
 
   const handleLessonComplete = async () => {
-    if (activeLesson) {
-      markLessonComplete(activeLesson.id)
+    if (!activeLesson || !activeModule || isSubmitting) return;
 
-      const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
+    setIsSubmitting(true);
 
-      try {
-        await fetch('http://localhost:4000/complete-lesson', {
+    markLessonComplete(activeLesson.id);
+    const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
+
+    try {
+      await fetch('http://localhost:4000/complete-lesson', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ lessonId: activeLesson.id, learnerId }),
+      });
+
+      const moduleComplete = isModuleCompleted(activeModule.id);
+      if (moduleComplete) {
+        await fetch('http://localhost:4000/complete-module', {
           method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            lessonId: activeLesson.id,
-            learnerId: learnerId, // or get from context/auth
-          }),
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ moduleId: activeModule.id, learnerId }),
         });
-      } catch (err) {
-        console.error("Failed to sync lesson completion:", err);
-        // optionally: revert local change, show error to user
       }
 
-      // If there's a next lesson, go to it
-      const nextLesson = getNextLesson()
+      const nextLesson = getNextLesson();
       if (nextLesson) {
-        // handleLessonChange(nextLesson.moduleId, nextLesson.lessonId)
+        handleLessonChange(nextLesson.moduleId, nextLesson.lessonId);
+      } else if (activeModule.quiz) {
+        handleQuizSelect(activeModule.id, activeModule.quiz.id);
       }
-      // If there's no next lesson but there's a quiz in this module, go to it
-      else if (activeModule?.quiz) {
-        handleQuizSelect(activeModule.id, activeModule.quiz.id)
-      }
+    } catch (err) {
+      console.error("Failed to sync lesson/module completion:", err);
+    } finally {
+      setIsSubmitting(false);
     }
-  }
+  };
+
 
   const handleQuizComplete = async (result: QuizResult) => {
     if (activeQuiz) {
@@ -187,7 +192,7 @@ const CourseViewerLayout: React.FC = () => {
   return <div className="flex h-screen bg-stone-50 overflow-hidden">
     <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} activeQuizId={activeQuizId} onLessonSelect={handleLessonChange} onQuizSelect={handleQuizSelect} />
     <div className="flex-1 overflow-auto">
-      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} onNavigate={handleLessonChange} onComplete={handleLessonComplete} /> : activeQuiz ? (
+      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} isSubmitting={isSubmitting} isLessonCompleted={isLessonCompleted} onNavigate={handleLessonChange} onComplete={handleLessonComplete} /> : activeQuiz ? (
         <QuizContent quiz={activeQuiz} module={activeModule!} onComplete={handleQuizComplete} existingResult={getQuizResult(activeQuiz.id)} />
       ) : <div className="flex items-center justify-center h-full">
         <div className="text-center p-8">
