@@ -52,5 +52,23 @@ pub struct CompleteQuizPayload {
     pub quiz_id: i64,
     pub learner_id: String,
     pub score: i32,
-    pub total_questions: i32
+    pub total_questions: i32,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseProgressSummary {
+    pub course_id: i64,
+    pub course_title: String,
+    pub completed_lesson_ids: Vec<i64>,
+    pub completed_quiz_ids: Vec<i64>,
+    pub completed_module_ids: Vec<i64>,
+    pub progress_percent: f32,
+    pub course_completed: bool,
+}
+
+#[derive(Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct LearnerQuery {
+    pub learner_id: String,
 }
