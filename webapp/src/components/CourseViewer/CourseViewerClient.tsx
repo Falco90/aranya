@@ -3,16 +3,16 @@
 import React from 'react';
 import { CourseViewerProvider } from '../CourseViewer/CourseContext';
 import CourseViewerLayout from './CourseViewerLayout';
-import { Course } from '../../types/course';
+import { Course, CourseProgress } from '../../types/course';
 
 interface Props {
     course: Course;
-    completedLessonIds: number[];
+    courseProgress: CourseProgress;
 }
 
-const CourseViewerClient: React.FC<Props> = ({ course, completedLessonIds }) => {
+const CourseViewerClient: React.FC<Props> = ({ course, courseProgress }) => {
     return (
-        <CourseViewerProvider course={course} completedLessonIds={completedLessonIds}>
+        <CourseViewerProvider course={course} courseProgress={courseProgress}>
             <CourseViewerLayout />
         </CourseViewerProvider>
     );

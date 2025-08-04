@@ -9,13 +9,13 @@ export default async function CoursePage({ params }: { params: { courseId: strin
   const getCourseUrl = new URL("http://localhost:4000/get-course");
   getCourseUrl.searchParams.set("courseId", courseId);
 
-  const getCompletedLessonIdsUrl = new URL("http://localhost:4000/get-completed-lesson-ids");
-  getCompletedLessonIdsUrl.searchParams.set("courseId", courseId);
-  getCompletedLessonIdsUrl.searchParams.set("learnerId", learnerId);
+  const getCourseProgressUrl = new URL("http://localhost:4000/get-course-progress");
+  getCourseProgressUrl.searchParams.set("courseId", courseId);
+  getCourseProgressUrl.searchParams.set("learnerId", learnerId);
 
   const [courseRes, completedLessonsRes] = await Promise.all([
     fetch(getCourseUrl),
-    fetch(getCompletedLessonIdsUrl),
+    fetch(getCourseProgressUrl),
   ]);
 
   if (!courseRes.ok) {
@@ -23,7 +23,8 @@ export default async function CoursePage({ params }: { params: { courseId: strin
   }
 
   const course: Course = await courseRes.json();
-  const completed = await completedLessonsRes.json();
+  const courseProgress = await completedLessonsRes.json();
+  console.log(courseProgress);
 
-  return <CourseViewerClient course={course} completedLessonIds={completed.lessonIds} />;
+  return <CourseViewerClient course={course} courseProgress={courseProgress} />;
 }

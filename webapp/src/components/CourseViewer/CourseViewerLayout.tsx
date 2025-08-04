@@ -6,7 +6,7 @@ import QuizContent from './QuizContent';
 import { QuizResult } from '@/types/course';
 
 const CourseViewerLayout: React.FC = () => {
-  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted} = useCourseViewer();
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isModuleCompleted } = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
@@ -104,6 +104,33 @@ const CourseViewerLayout: React.FC = () => {
       }
     }
   }
+
+  const handleModuleComplete = async () => {
+    if (activeModule && isModuleCompleted(activeModule.id)) {
+      const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf'; // get from auth/session in real app
+
+      try {
+        const response = await fetch('http://localhost:4000/complete-module', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            moduleId: activeModule.id,
+            learnerId: learnerId,
+          }),
+        });
+
+        if (!response.ok) {
+          throw new Error(`Error: ${response.statusText}`);
+        }
+
+        alert('Module marked complete! 🎉');
+        // optionally update UI or local state here
+      } catch (error) {
+        console.error('Failed to complete module:', error);
+        alert('Failed to complete module. Please try again.');
+      }
+    }
+  };
 
   const getNextLesson = () => {
     if (!activeModule || !activeLessonId) return null;

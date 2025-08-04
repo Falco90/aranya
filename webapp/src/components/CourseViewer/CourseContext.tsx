@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode } from 'react'
-import { Course, QuizResult, Progress } from '../../types/course';
+import { Course, QuizResult, Progress, CourseProgress } from '../../types/course';
 // Define context type
 type CourseViewerContextType = {
     course: Course
@@ -26,17 +26,24 @@ const CourseViewerContext = createContext<
 export const CourseViewerProvider: React.FC<{
     children: ReactNode,
     course: Course,
-    completedLessonIds: number[]
-}> = ({ children, course, completedLessonIds }) => {
+    courseProgress: CourseProgress,
+}> = ({ children, course, courseProgress }) => {
     const [activeModule, setActiveModule] = useState<number | null>(null)
     const [activeLesson, setActiveLesson] = useState<number | null>(null)
     const [activeQuiz, setActiveQuiz] = useState<number | null>(null)
     const [progress, setProgress] = useState<Progress>({
-        completedLessons: completedLessonIds.reduce((acc, id) => {
+        completedLessons: courseProgress.completedLessonIds.reduce((acc, id) => {
             acc[id] = true
             return acc
         }, {} as Record<number, boolean>),
-        completedQuizzes: {},
+        completedQuizzes: courseProgress.completedQuizIds.reduce((acc, id) => {
+            acc[id] = true;
+            return acc;
+        }, {} as Record<number, boolean>),
+        completedModules: courseProgress.completedModuleIds.reduce((acc, id) => {
+            acc[id] = true;
+            return acc;
+        }, {} as Record<number, boolean>),
         quizResults: {},
     })
     // Progress tracking functions
