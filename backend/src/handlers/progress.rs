@@ -134,42 +134,6 @@ pub async fn complete_quiz(
     Ok(StatusCode::OK)
 }
 
-pub async fn get_course_progress(
-    State(pool): State<Pool<Postgres>>,
-    Query(params): Query<CourseProgressQuery>,
-) -> Result<Json<CourseProgressResponse>, (StatusCode, String)> {
-    let result: Option<CourseProgressResponse> = sqlx::query_as::<_, CourseProgressResponse>(
-        r#"
-        SELECT
-            course_id,
-            learner_id,
-            progress_percent,
-            completed,
-            last_accessed
-        FROM course_progress
-        WHERE course_id = $1 AND learner_id = $2
-        "#,
-    )
-    .bind(&params.course_id)
-    .bind(&params.learner_id)
-    .fetch_optional(&pool)
-    .await
-    .map_err(|e| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Database error: {}", e),
-        )
-    })?;
-
-    match result {
-        Some(progress) => Ok(Json(progress)),
-        None => Err((
-            StatusCode::NOT_FOUND,
-            "Course progress not found for learner".to_string(),
-        )),
-    }
-}
-
 pub async fn get_completed_lesson_ids(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CompletedLessonsQuery>,
@@ -200,4 +164,122 @@ pub async fn get_completed_lesson_ids(
         .collect();
 
     Ok(Json(CompletedLessonsResponse { lesson_ids }))
+}
+
+pub async fn get_course_progress(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseProgressQuery>,
+) -> Result<Json<CourseProgressResponse>, (StatusCode, String)> {
+    let course_id = params.course_id;
+    let learner_id = &params.learner_id;
+
+    // 1. Get all lesson IDs in course
+    let total_lessons: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM lesson l
+        JOIN module m ON l.module_id = m.id
+        WHERE m.course_id = $1
+        "#,
+    )
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // 2. Get completed lessons for learner
+    let completed_lesson_ids: Vec<i64> = sqlx::query_scalar(
+        r#"
+        SELECT l.id
+        FROM lesson_completion lc
+        JOIN lesson l ON lc.lesson_id = l.id
+        JOIN module m ON l.module_id = m.id
+        WHERE lc.learner_id = $1 AND m.course_id = $2
+        "#,
+    )
+    .bind(learner_id)
+    .bind(course_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // 3. Get completed quiz IDs
+    let completed_quiz_ids: Vec<i64> = sqlx::query_scalar(
+        r#"
+        SELECT q.id
+        FROM quiz_completion qc
+        JOIN quiz q ON qc.quiz_id = q.id
+        JOIN module m ON q.module_id = m.id
+        WHERE qc.learner_id = $1 AND m.course_id = $2
+        "#,
+    )
+    .bind(learner_id)
+    .bind(course_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // 4. Get completed module IDs
+    let completed_module_ids: Vec<i64> = sqlx::query_scalar(
+        r#"
+        SELECT module_id
+        FROM module_completion
+        WHERE learner_id = $1
+        AND module_id IN (
+            SELECT id FROM module WHERE course_id = $2
+        )
+        "#,
+    )
+    .bind(learner_id)
+    .bind(course_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // 5. Get total modules in course
+    let total_modules: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM module
+        WHERE course_id = $1
+        "#,
+    )
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // 6. Calculate progress
+    let lesson_progress = if total_lessons > 0 {
+        completed_lesson_ids.len() as f32 / total_lessons as f32
+    } else {
+        0.0
+    };
+
+    let module_progress = if total_modules > 0 {
+        completed_module_ids.len() as f32 / total_modules as f32
+    } else {
+        0.0
+    };
+
+    // You can weigh lessons and modules however you like; here's a simple average:
+    let progress_percent = ((lesson_progress + module_progress) / 2.0) * 100.0;
+
+    // Determine course completion
+    let course_completed = completed_module_ids.len() as i64 == total_modules;
+
+    Ok(Json(CourseProgressResponse {
+        completed_lesson_ids,
+        completed_quiz_ids,
+        completed_module_ids,
+        progress_percent,
+        course_completed,
+    }))
+}
+
+fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, String) {
+    (
+        StatusCode::INTERNAL_SERVER_ERROR,
+        format!("Database error: {}", e),
+    )
 }

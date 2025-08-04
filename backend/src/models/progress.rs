@@ -12,11 +12,11 @@ pub struct CourseProgressQuery {
 #[derive(Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct CourseProgressResponse {
-    pub course_id: i64,
-    pub learner_id: String,
-    pub progress_percent: i32,
-    pub completed: bool,
-    pub last_accessed: Option<DateTime<Utc>>,
+    pub completed_lesson_ids: Vec<i64>,
+    pub completed_quiz_ids: Vec<i64>,
+    pub completed_module_ids: Vec<i64>,
+    pub progress_percent: f32,
+    pub course_completed: bool,
 }
 
 #[derive(Deserialize, Debug)]
