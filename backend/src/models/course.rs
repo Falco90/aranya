@@ -87,7 +87,7 @@ pub struct Module {
     pub title: String,
     pub position: i32,
     pub lessons: Vec<Lesson>,
-    pub quiz: Quiz,
+    pub quiz: Option<Quiz>,
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]

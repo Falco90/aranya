@@ -8,11 +8,9 @@ use serde_json::json;
 use sqlx::{Pool, Postgres};
 use std::{collections::HashMap, convert::TryInto};
 
-use crate::models::{
-    course::{
-        AnswerOption, Course, CourseQuery, CreateCoursePayload, Lesson, Module,
-        NumCompletedResponse, Question, Quiz, JoinCourseRequest
-    },
+use crate::models::course::{
+    AnswerOption, Course, CourseQuery, CreateCoursePayload, JoinCourseRequest, Lesson, Module,
+    NumCompletedResponse, Question, Quiz,
 };
 
 pub async fn create_course(
@@ -387,7 +385,7 @@ pub async fn get_course(
     // Map quizzes by module_id
     let mut quiz_by_module: HashMap<i64, Quiz> = HashMap::new();
     for q in quiz_rows {
-        let quiz = Quiz {
+        let quiz: Quiz = Quiz {
             id: q.id,
             module_id: q.module_id,
             questions: questions_by_quiz.remove(&q.id).unwrap_or_default(),
@@ -421,11 +419,7 @@ pub async fn get_course(
             title: m.title,
             position: m.position,
             lessons: lessons_by_module.remove(&m.id).unwrap_or_default(),
-            quiz: quiz_by_module.remove(&m.id).unwrap_or(Quiz {
-                id: 0,
-                module_id: m.id,
-                questions: vec![],
-            }),
+            quiz: quiz_by_module.remove(&m.id),
         })
         .collect();
 
