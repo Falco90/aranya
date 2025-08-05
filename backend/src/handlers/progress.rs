@@ -8,7 +8,7 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
 use crate::models::progress::{
-    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseProgressQuery, CourseProgressResponse, LessonCompleteRequest, ModuleCompleteRequest
+    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary, LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest
 };
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
@@ -282,4 +282,122 @@ fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, String) {
         StatusCode::INTERNAL_SERVER_ERROR,
         format!("Database error: {}", e),
     )
+}
+
+pub async fn get_all_course_progress(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<LearnerQuery>, // contains learner_id
+) -> Result<Json<Vec<CourseProgressSummary>>, (StatusCode, String)> {
+    let learner_id = &params.learner_id;
+
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            c.id AS course_id,
+            c.title AS course_title,
+            l.id AS lesson_id,
+            CASE WHEN lc.learner_id IS NOT NULL THEN TRUE ELSE FALSE END AS lesson_completed,
+            q.id AS quiz_id,
+            CASE WHEN qc.learner_id IS NOT NULL THEN TRUE ELSE FALSE END AS quiz_completed,
+            m.id AS module_id,
+            CASE WHEN mc.learner_id IS NOT NULL THEN TRUE ELSE FALSE END AS module_completed
+        FROM learner_course_enrollment ce
+        JOIN course c ON ce.course_id = c.id
+        LEFT JOIN module m ON m.course_id = c.id
+        LEFT JOIN lesson l ON l.module_id = m.id
+        LEFT JOIN lesson_completion lc ON lc.lesson_id = l.id AND lc.learner_id = $1
+        LEFT JOIN quiz q ON q.module_id = m.id
+        LEFT JOIN quiz_completion qc ON qc.quiz_id = q.id AND qc.learner_id = $1
+        LEFT JOIN module_completion mc ON mc.module_id = m.id AND mc.learner_id = $1
+        WHERE ce.learner_id = $1
+        "#,
+    )
+    .bind(learner_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    use std::collections::{HashMap, HashSet};
+
+    let mut summaries: HashMap<i64, CourseProgressSummary> = HashMap::new();
+    let mut total_lessons: HashMap<i64, HashSet<i64>> = HashMap::new();
+    let mut total_modules: HashMap<i64, HashSet<i64>> = HashMap::new();
+
+    for row in rows {
+        let course_id: i64 = row.get("course_id");
+        let course_title: String = row.get("course_title");
+        let lesson_id: Option<i64> = row.try_get("lesson_id").ok();
+        let lesson_completed: bool = row.get("lesson_completed");
+        let quiz_id: Option<i64> = row.try_get("quiz_id").ok();
+        let quiz_completed: bool = row.get("quiz_completed");
+        let module_id: Option<i64> = row.try_get("module_id").ok();
+        let module_completed: bool = row.get("module_completed");
+
+        let entry = summaries
+            .entry(course_id)
+            .or_insert_with(|| CourseProgressSummary {
+                course_id,
+                course_title,
+                completed_lesson_ids: vec![],
+                completed_quiz_ids: vec![],
+                completed_module_ids: vec![],
+                progress_percent: 0.0,
+                course_completed: false,
+            });
+
+        if let Some(lid) = lesson_id {
+            total_lessons.entry(course_id).or_default().insert(lid);
+            if lesson_completed {
+                if !entry.completed_lesson_ids.contains(&lid) {
+                    entry.completed_lesson_ids.push(lid);
+                }
+            }
+        }
+
+        if let Some(qid) = quiz_id {
+            if quiz_completed {
+                if !entry.completed_quiz_ids.contains(&qid) {
+                    entry.completed_quiz_ids.push(qid);
+                }
+            }
+        }
+
+        if let Some(mid) = module_id {
+            total_modules.entry(course_id).or_default().insert(mid);
+            if module_completed {
+                if !entry.completed_module_ids.contains(&mid) {
+                    entry.completed_module_ids.push(mid);
+                }
+            }
+        }
+    }
+
+    // Now compute progress for each course
+    for summary in summaries.values_mut() {
+        let lesson_total = total_lessons
+            .get(&summary.course_id)
+            .map(|s| s.len())
+            .unwrap_or(0);
+        let module_total = total_modules
+            .get(&summary.course_id)
+            .map(|s| s.len())
+            .unwrap_or(0);
+
+        let lesson_progress = if lesson_total > 0 {
+            summary.completed_lesson_ids.len() as f32 / lesson_total as f32
+        } else {
+            0.0
+        };
+
+        let module_progress = if module_total > 0 {
+            summary.completed_module_ids.len() as f32 / module_total as f32
+        } else {
+            0.0
+        };
+
+        summary.progress_percent = ((lesson_progress + module_progress) / 2.0) * 100.0;
+        summary.course_completed = summary.completed_module_ids.len() == module_total;
+    }
+
+    Ok(Json(summaries.into_values().collect()))
 }
