@@ -9,8 +9,7 @@ use sqlx::{Pool, Postgres};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseQuery, CreateCoursePayload, JoinCourseRequest, Lesson, Module,
-    NumCompletedResponse, Question, Quiz,
+    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CreateCoursePayload, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz
 };
 
 pub async fn create_course(
@@ -435,4 +434,37 @@ pub async fn get_course(
     };
 
     Ok((StatusCode::OK, Json(course)))
+}
+
+// get course_creator
+
+pub async fn get_course_creator(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseQuery>,
+) -> Result<Json<CourseCreatorResponse>, (StatusCode, String)> {
+    let result: Option<CourseCreatorResponse> = sqlx::query_as::<_, CourseCreatorResponse>(
+        r#"
+        SELECT
+            creator_id
+        FROM course
+        WHERE id = $1
+        "#,
+    )
+    .bind(&params.course_id)
+    // .bind(2)
+    .fetch_optional(&pool)
+    .await
+    .map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database error: {}", e),
+        )
+    })?;
+
+    println!("Result: {:?}", result);
+
+    match result {
+        Some(progress) => Ok(Json(progress)),
+        None => Err((StatusCode::NOT_FOUND, "Course not found".to_string())),
+    }
 }

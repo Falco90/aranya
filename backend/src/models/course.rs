@@ -81,6 +81,12 @@ pub struct NumCompletedResponse {
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
+pub struct CourseCreatorResponse {
+    pub creator_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
+#[serde(rename_all = "camelCase")]
 pub struct Module {
     pub id: i64,
     pub course_id: i64,
