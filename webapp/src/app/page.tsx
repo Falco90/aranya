@@ -5,7 +5,7 @@ import HowItWorks from '../components/Landing/HowItWorks';
 import CoursePreviewSection from '../components/Landing/CoursePreviewSection';
 import ProfilesSection from '../components/Landing/ProfilesSection';
 import FAQSection from '../components/Landing/FAQSection';
-import Footer from '../components/Landing/Footer';
+import Footer from '../components/Layout/Footer';
 interface LandingPageProps {
   isLoggedIn: boolean;
   onLogin: () => void;
