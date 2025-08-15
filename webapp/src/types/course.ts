@@ -66,3 +66,38 @@ export type CourseProgress = {
     progressPercent: number;
     courseCompleted: boolean;
 }
+
+export type CoursePayload = {
+  title: string;
+  description: string;
+  creatorId: string;
+  modules: ModulePayload[];
+};
+
+export type ModulePayload = {
+  title: string;
+  position: number,
+  lessons: LessonPayload[];
+  quiz?: QuizPayload;
+};
+
+export type LessonPayload = {
+  title: string;
+  content: string;
+  position: number;
+  videoUrl?: string;
+};
+
+export type QuizPayload = {
+  questions: QuestionPayload[];
+};
+
+export type QuestionPayload = {
+  questionText: string;
+  answers: AnswerOptionPayload[];
+};
+
+export type AnswerOptionPayload = {
+  answerText: string;
+  isCorrect: boolean;
+};
