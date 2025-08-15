@@ -20,7 +20,6 @@ contract CreatorNFT is
     OwnableUpgradeable
 {
     uint256 public courseId;
-    string public courseName;
 
     uint256 constant MILESTONE_COUNT = 5;
     string[5] public milestoneURIs;
@@ -38,7 +37,6 @@ contract CreatorNFT is
     }
 
     function initialize(
-        string memory _courseName,
         string memory _name,
         string memory _symbol,
         uint256 _courseId,
@@ -50,7 +48,6 @@ contract CreatorNFT is
         __ERC721URIStorage_init();
         __Ownable_init(ownerAddress);
         courseId = _courseId;
-        courseName = _courseName;
         milestoneURIs = _milestoneURIs;
         milestoneThresholds = _milestoneThresholds;
         currentMilestone = 0;

@@ -4,6 +4,7 @@ pragma solidity ^0.8.25;
 import "@openzeppelin/contracts/proxy/Clones.sol";
 import "./CreatorNFTImpl.sol";
 import "./LearnerNFTImpl.sol";
+import {IWeb2Json} from "flare-periphery/src/coston2/IWeb2Json.sol";
 
 interface ICourseManager {
     function createCourse(
@@ -33,6 +34,10 @@ contract CourseManager {
     string[5] public creatorMilestoneURIs;
     string[5] public learnerMilestoneURIs;
     uint16[5] public creatorMilestoneThresholds;
+
+    struct DataTransportObject {
+        address creator_id;
+    }
 
     struct Course {
         address creator;
@@ -70,22 +75,35 @@ contract CourseManager {
         creatorMilestoneThresholds = _creatorMilestoneThresholds;
     }
 
+    function isJsonApiProofValid(
+        IWeb2Json.Proof calldata _proof
+    ) private view returns (bool) {
+        return ContractRegistry.getFdcVerification().verifyJsonApi(_proof);
+    }
+
     function createCourse(
         uint256 courseId,
-        string memory courseName,
-        string memory learnerNFTName,
-        string memory learnerNFTSymbol
+        IWeb2Json.Proof calldata proof,
+        string memory courseName
     ) external {
         require(
             courses[courseId].creator == address(0),
             "Course already exists"
         );
 
+        require(isJsonApiProofValid(proof), "Invalid proof");
+
+        DataTransportObject memory dto = abi.decode(
+            proof.data.responseBody.abiEncodedData,
+            (DataTransportObject)
+        );
+
+        require(dto.creator_id == msg.sender, "Sender is not course creator");
+
         address creatorNFTClone = creatorNFTImplementation.clone();
         CreatorNFT(creatorNFTClone).initialize(
             courseName,
-            "Creator NFT",
-            "CNFT",
+            "TEACHER",
             courseId,
             creatorMilestoneURIs,
             creatorMilestoneThresholds,
@@ -94,8 +112,8 @@ contract CourseManager {
 
         address learnerNFTClone = learnerNFTImplementation.clone();
         LearnerNFT(learnerNFTClone).initialize(
-            learnerNFTName,
-            learnerNFTSymbol,
+            courseName,
+            "LEARNER",
             courseId,
             learnerMilestoneURIs,
             msg.sender
