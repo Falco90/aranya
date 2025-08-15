@@ -1,11 +1,11 @@
 import { ethers } from "ethers";
 
 // Import all ABIs from your local abis folder
-import IFlareContractRegistry from "../../abis/IFlareContractRegistry.json";
-import IFlareSystemsManager from "../../abis/IFlareSystemsManager.json";
-import IRelay from "../../abis/IRelay.json";
-import IFdcVerification from "../../abis/IFdcVerification.json";
-import IFdcHub from "../../abis/IFdcHub.json";
+import IFlareContractRegistry from "../../abis/fdc/IFlareContractRegistry.json";
+import IFlareSystemsManager from "../../abis/fdc/IFlareSystemsManager.json";
+import IRelay from "../../abis/fdc/IRelay.json";
+import IFdcVerification from "../../abis/fdc/IFdcVerification.json";
+import IFdcHub from "../../abis/fdc/IFdcHub.json";
 
 const FLARE_CONTRACT_REGISTRY_ADDRESS = "0xaD67FE66660Fb8dFE9d6b1b4240d8650e30F6019";	
 

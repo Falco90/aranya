@@ -9,7 +9,7 @@ import {
 } from "./getters";
 
 // ABI imports
-import FdcRequestFeeConfigurationsAbi from "../../abis/IFdcRequestFeeConfigurations.json";
+import FdcRequestFeeConfigurationsAbi from "../../abis/fdc/IFdcRequestFeeConfigurations.json";
 
 const RPC_URL = process.env.COSTON2_RPC_URL!;
 const NETWORK_NAME = process.env.NETWORK_NAME || "sepolia"; // fallback
