@@ -110,18 +110,7 @@ export async function POST(request: Request) {
         data: decodedResponse
     }
 
-    const courseManager = new ethers.Contract(
-        COURSE_MANAGER_ADDRESS!,
-        ICourseManager,
-        signer);
-
-    const transaction = await courseManager.createCourse(responseObj.course_id, formattedProof, coursePayload.title);
-
-    const receipt = await transaction.wait();
-
-    console.log("receipt: ", receipt);
-
-    return new Response(JSON.stringify({ receipt }), {
+    return new Response(JSON.stringify({ proof: formattedProof, courseId: responseObj.course_id, title: coursePayload.title }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });

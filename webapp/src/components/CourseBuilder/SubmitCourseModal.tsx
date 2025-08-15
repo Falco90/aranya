@@ -52,7 +52,7 @@ type ServerResponse = {
     // Shape this to match your API response
     proof?: any;
     courseId?: string | number;
-    creatorId?: string;
+    title?: string;
     // add any other fields your API returns
 };
 
@@ -190,9 +190,9 @@ export default function SubmitCourseModal({
             // then:
             console.log(serverData);
             const args = [
-                serverData.courseId ?? 1,
-                serverData.proof ?? serverData,
-                serverData.creatorId ?? address,
+                serverData.courseId,
+                serverData.proof,
+                serverData.title
             ];
 
             await writeContractAsync({
