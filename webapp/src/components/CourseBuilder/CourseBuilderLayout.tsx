@@ -16,7 +16,6 @@ import {
   GraduationCapIcon,
   LayoutIcon,
   LeafIcon,
-  PlayIcon,
   SendIcon,
 } from "lucide-react";
 
@@ -27,10 +26,6 @@ const CourseBuilderLayout: React.FC = () => {
   const { course, activeModule } = useCourseBuilder();
   const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   const router = useRouter();
-
-  const handleViewCourse = () => {
-    router.push("/view");
-  };
 
   const handleOpenSubmitModal = () => {
     if (!course.title) {

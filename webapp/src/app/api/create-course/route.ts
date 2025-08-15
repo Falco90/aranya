@@ -13,12 +13,12 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
 
-const apiUrl = "https://3a26ef5d26fc.ngrok-free.app/get-course-creator";
+const apiUrl = "https://da370551f0c7.ngrok-free.app/get-course-creator";
 const postProcessJq = `{creatorId: .creatorId}`;
 const httpMethod = "GET";
 // Defaults to "Content-Type": "application/json"
 const headers = "{}";
-const queryParams = `{"courseId":"1"}`;
+
 const body = "{}";
 const abiSignature = `{"components": [{"internalType": "string", "name": "creatorId", "type": "string"}],"name": "task","type": "tuple"}`;
 
@@ -31,7 +31,7 @@ type ResponseData = {
     message: string
 }
 
-async function prepareAttestationRequest(apiUrl: string, postProcessJq: string, abiSignature: string) {
+async function prepareAttestationRequest(apiUrl: string, postProcessJq: string, queryParams: string, abiSignature: string) {
     const requestBody = {
         url: apiUrl,
         httpMethod: httpMethod,
@@ -55,16 +55,27 @@ async function retrieveDataAndProof(abiEncodedRequest: string, roundId: number) 
 }
 
 export async function POST(request: Request) {
-    console.log(request.body);
-    // 1. Prepare attestation to attest creatorId and courseId
+    // 1. Save course to database (send to Rust backend)
+    // Parse JSON payload from frontend
+    const coursePayload = await request.json();
 
-    // 2. Submit attestation
+    console.log("Forwarding course payload to Rust backend:", coursePayload);
 
-    // 3. Retrieve data and proof
+    // Send to Rust backend
+    const rustResponse = await fetch(`http://localhost:4000/create-course`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(coursePayload),
+    });
+    console.log(rustResponse);
+    const responseObj = await rustResponse.json();
+    console.log(responseObj);
 
-    // 4. Call createCourse function with proof;
+    const queryParams = `{"courseId":"${responseObj.course_id}"}`;
 
-    const data = await prepareAttestationRequest(apiUrl, postProcessJq, abiSignature);
+    const data = await prepareAttestationRequest(apiUrl, postProcessJq, queryParams, abiSignature);
 
     const abiEncodedRequest = data.abiEncodedRequest;
     const roundId = await submitAttestationRequest(abiEncodedRequest);
@@ -76,7 +87,7 @@ export async function POST(request: Request) {
         COURSE_MANAGER_ADDRESS!,
         ICourseManager.abi,
         signer);
-    
+
     // const transaction = courseManager.createCourse();
 
     return new Response(JSON.stringify({ proof }), {
