@@ -4,9 +4,9 @@ import {
     retrieveDataAndProofBaseWithRetry,
 } from "../utils/fdc";
 import { ethers } from 'ethers';
-import IWeb2JsonVerification from "../../abis/IWeb2JsonVerification.json";
+import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
 
-import ICourseManager from "../../abis/ICourseManager.json";
+import ICourseManager from "../../abis/aranya/ICourseManager.json";
 
 const provider = new ethers.JsonRpcProvider(process.env.COSTON2_RPC_URL);
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
