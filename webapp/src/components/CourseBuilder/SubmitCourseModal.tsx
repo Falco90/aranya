@@ -151,6 +151,13 @@ export default function SubmitCourseModal({
         };
     }, [isOpen, course]);
 
+    useEffect(() => {
+        if (currentStep === "pending" && serverData && isConnected) {
+            // Auto-confirm transaction
+            handleConfirmTransaction();
+        }
+    }, [currentStep, serverData, isConnected]);
+
     const handleConfirmTransaction = async () => {
         if (!isConnected) {
             setError("Please connect your wallet to continue.");
@@ -190,7 +197,7 @@ export default function SubmitCourseModal({
 
             await writeContractAsync({
                 address: COURSE_MANAGER_ADDRESS as `0x${string}`,
-                abi: ICourseManager.abi as any,
+                abi: ICourseManager as any,
                 functionName: "createCourse", // <- make sure this matches your ABI
                 args,
             });

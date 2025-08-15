@@ -3,10 +3,11 @@ import {
     submitAttestationRequest,
     retrieveDataAndProofBaseWithRetry,
 } from "../utils/fdc";
-import { ethers } from 'ethers';
+import { ethers, AbiCoder } from 'ethers';
 import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
 
 import ICourseManager from "../../abis/aranya/ICourseManager.json";
+import { decodeAbiParameters } from "viem";
 
 const provider = new ethers.JsonRpcProvider(process.env.COSTON2_RPC_URL);
 const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
@@ -83,14 +84,44 @@ export async function POST(request: Request) {
     const proof = await retrieveDataAndProof(abiEncodedRequest, roundId);
     console.log("proof: ", proof);
 
+    // --- DECODE RESPONSE HEX ---
+    // Grab the Response struct components from the ABI of IWeb2JsonVerification
+    const responseType = IWeb2JsonVerification.abi[0].inputs[0].components[1];
+
+    if (!responseType) throw new Error("Response ABI not found");
+
+    const decoded = decodeAbiParameters(
+        [
+            {
+                type: responseType.type,
+                name: responseType.name,
+                components: responseType.components,
+            },
+        ],
+        proof.response_hex as `0x${string}`
+    );
+    console.log("Decoded:", decoded);
+
+    const decodedResponse = decoded[0];
+
+
+    const formattedProof = {
+        merkleProof: proof.proof,
+        data: decodedResponse
+    }
+
     const courseManager = new ethers.Contract(
         COURSE_MANAGER_ADDRESS!,
-        ICourseManager.abi,
+        ICourseManager,
         signer);
 
-    // const transaction = courseManager.createCourse();
+    const transaction = await courseManager.createCourse(responseObj.course_id, formattedProof, coursePayload.title);
 
-    return new Response(JSON.stringify({ proof }), {
+    const receipt = await transaction.wait();
+
+    console.log("receipt: ", receipt);
+
+    return new Response(JSON.stringify({ receipt }), {
         status: 200,
         headers: { "Content-Type": "application/json" },
     });
