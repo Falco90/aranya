@@ -14,7 +14,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
 
-const apiUrl = "https://da370551f0c7.ngrok-free.app/get-course-creator";
+const apiUrl = "https://736d5ff6030c.ngrok-free.app/get-course-creator";
 const postProcessJq = `{creatorId: .creatorId}`;
 const httpMethod = "GET";
 // Defaults to "Content-Type": "application/json"
@@ -110,8 +110,18 @@ export async function POST(request: Request) {
         data: decodedResponse
     }
 
-    return new Response(JSON.stringify({ proof: formattedProof, courseId: responseObj.course_id, title: coursePayload.title }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-    });
+    return new Response(
+        JSON.stringify(
+            {
+                proof: formattedProof,
+                courseId: responseObj.course_id,
+                title: coursePayload.title,
+            },
+            (_, value) => (typeof value === "bigint" ? value.toString() : value)
+        ),
+        {
+            status: 200,
+            headers: { "Content-Type": "application/json" },
+        }
+    );
 }

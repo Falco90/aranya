@@ -190,17 +190,19 @@ export default function SubmitCourseModal({
             // then:
             console.log(serverData);
             const args = [
-                serverData.courseId,
+                BigInt(serverData.courseId!),
                 serverData.proof,
                 serverData.title
             ];
 
-            await writeContractAsync({
+            const response = await writeContractAsync({
                 address: COURSE_MANAGER_ADDRESS as `0x${string}`,
                 abi: ICourseManager as any,
                 functionName: "createCourse", // <- make sure this matches your ABI
                 args,
             });
+
+            console.log(response);
 
             setCurrentStep("success");
         } catch (e: any) {
