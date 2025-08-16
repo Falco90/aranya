@@ -21,7 +21,7 @@ const httpMethod = "GET";
 const headers = "{}";
 
 const body = "{}";
-const abiSignature = `{"components": [{"internalType": "string", "name": "creatorId", "type": "string"}],"name": "task","type": "tuple"}`;
+const abiSignature = `{"components": [{"internalType": "address", "name": "creatorId", "type": "address"}],"name": "task","type": "tuple"}`;
 
 // Configuration constants
 const attestationTypeBase = "Web2Json";
