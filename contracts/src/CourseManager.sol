@@ -9,9 +9,8 @@ import {IWeb2Json} from "flare-periphery/src/coston2/IWeb2Json.sol";
 interface ICourseManager {
     function createCourse(
         uint256 courseId,
-        string memory courseName,
-        string memory learnerNFTName,
-        string memory learnerNFTSymbol
+        IWeb2Json.Proof calldata proof,
+        string memory courseName
     ) external;
 
     function enroll(uint256 courseId) external returns (uint256);
