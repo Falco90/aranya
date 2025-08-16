@@ -9,7 +9,8 @@ use sqlx::{Pool, Postgres};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CreateCoursePayload, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz
+    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CourseSummary, CreateCoursePayload,
+    CreatorQuery, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz,
 };
 
 pub async fn create_course(
@@ -467,4 +468,36 @@ pub async fn get_course_creator(
         Some(progress) => Ok(Json(progress)),
         None => Err((StatusCode::NOT_FOUND, "Course not found".to_string())),
     }
+}
+
+pub async fn get_courses_by_creator(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CreatorQuery>,
+) -> Result<impl IntoResponse, (StatusCode, String)> {
+    let rows = sqlx::query_as::<_, CourseSummary>(
+        r#"
+        SELECT 
+            c.id,
+            c.title,
+            (
+                SELECT COUNT(*)::BIGINT 
+                FROM learner_course_enrollment e 
+                WHERE e.course_id = c.id
+            ) AS num_learners,
+            (
+                SELECT COUNT(*)::BIGINT 
+                FROM course_completion cc 
+                WHERE cc.course_id = c.id
+            ) AS num_completed
+        FROM course c
+        WHERE c.creator_id = $1
+        ORDER BY c.id DESC
+        "#,
+    )
+    .bind(&params.creator_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    Ok((StatusCode::OK, Json(rows)))
 }

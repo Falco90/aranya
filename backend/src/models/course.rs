@@ -16,7 +16,7 @@ pub struct CreateModulePayload {
     pub title: String,
     pub position: i32,
     pub lessons: Vec<CreateLessonPayload>,
-    pub quiz: Option<CreateQuizPayload>
+    pub quiz: Option<CreateQuizPayload>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
@@ -25,27 +25,27 @@ pub struct CreateLessonPayload {
     pub title: String,
     pub content: String,
     pub video_url: Option<String>,
-    pub position: i32
+    pub position: i32,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateQuizPayload {
-    pub questions: Vec<CreateQuestionPayload>
+    pub questions: Vec<CreateQuestionPayload>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CreateQuestionPayload{
+pub struct CreateQuestionPayload {
     pub question_text: String,
-    pub answers: Vec<CreateAnswerOptionPayload>
+    pub answers: Vec<CreateAnswerOptionPayload>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CreateAnswerOptionPayload {
     pub answer_text: String,
-    pub is_correct: bool
+    pub is_correct: bool,
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
@@ -71,6 +71,12 @@ pub struct JoinCourseRequest {
 #[serde(rename_all = "camelCase")]
 pub struct CourseQuery {
     pub course_id: i64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CreatorQuery {
+    pub creator_id: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
@@ -131,4 +137,13 @@ pub struct AnswerOption {
     pub question_id: i64,
     pub answer_text: String,
     pub is_correct: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseSummary {
+    pub id: i64,
+    pub title: String,
+    pub num_learners: i64,
+    pub num_completed: i64,
 }
