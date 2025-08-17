@@ -139,11 +139,34 @@ pub struct AnswerOption {
     pub is_correct: bool,
 }
 
-#[derive(Debug, Deserialize, Serialize, FromRow)]
+#[derive(Deserialize)]
 #[serde(rename_all = "camelCase")]
-pub struct CourseSummary {
-    pub id: i64,
+pub struct UserQuery {
+    pub user_id: String,
+}
+
+// Courses created by user
+#[derive(Serialize)]
+pub struct CreatedCourse {
+    pub course_id: i64,
     pub title: String,
     pub num_learners: i64,
     pub num_completed: i64,
+}
+
+// Courses enrolled in by user
+#[derive(Serialize)]
+pub struct EnrolledCourse {
+    pub course_id: i64,
+    pub title: String,
+    pub total_modules: i64,
+    pub completed_modules: i64,
+    pub progress_percent: i64,
+    pub completed: bool,
+}
+
+#[derive(Serialize)]
+pub struct UserCoursesResponse {
+    pub created_courses: Vec<CreatedCourse>,
+    pub enrolled_courses: Vec<EnrolledCourse>,
 }

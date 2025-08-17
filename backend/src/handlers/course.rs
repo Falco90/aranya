@@ -5,12 +5,11 @@ use axum::{
     response::IntoResponse,
 };
 use serde_json::json;
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Postgres, Transaction, Row};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CourseSummary, CreateCoursePayload,
-    CreatorQuery, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz,
+    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz, UserCoursesResponse, UserQuery
 };
 
 pub async fn create_course(
@@ -152,15 +151,6 @@ pub async fn join_course(
     .execute(&mut *tx)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-
-    // Only increment if enrollment actually happened
-    if result.rows_affected() > 0 {
-        sqlx::query("UPDATE course SET num_learners = num_learners + 1 WHERE id = $1")
-            .bind(&payload.course_id)
-            .execute(&mut *tx)
-            .await
-            .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
-    }
 
     tx.commit().await.map_err(|e| {
         (
@@ -470,14 +460,25 @@ pub async fn get_course_creator(
     }
 }
 
-pub async fn get_courses_by_creator(
+pub async fn get_user_courses(
     State(pool): State<Pool<Postgres>>,
-    Query(params): Query<CreatorQuery>,
+    Query(params): Query<UserQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    let rows = sqlx::query_as::<_, CourseSummary>(
+    // Begin transaction
+    let mut tx: Transaction<'_, Postgres> = pool.begin().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("TX Failed to begin transaction: {}", e),
+        )
+    })?;
+
+    //
+    // Fetch created courses
+    //
+    let created_rows = sqlx::query(
         r#"
         SELECT 
-            c.id,
+            c.id AS course_id,
             c.title,
             (
                 SELECT COUNT(*)::BIGINT 
@@ -494,10 +495,83 @@ pub async fn get_courses_by_creator(
         ORDER BY c.id DESC
         "#,
     )
-    .bind(&params.creator_id)
-    .fetch_all(&pool)
+    .bind(&params.user_id)
+    .fetch_all(&mut *tx)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    Ok((StatusCode::OK, Json(rows)))
+    let created_courses = created_rows
+        .into_iter()
+        .map(|row| CreatedCourse {
+            course_id: row.try_get("course_id").unwrap(),
+            title: row.try_get("title").unwrap(),
+            num_learners: row.try_get("num_learners").unwrap(),
+            num_completed: row.try_get("num_completed").unwrap(),
+        })
+        .collect::<Vec<_>>();
+
+    //
+    // Fetch enrolled courses
+    //
+    let enrolled_rows = sqlx::query(
+        r#"
+        SELECT 
+            c.id AS course_id,
+            c.title,
+            COUNT(m.id)::BIGINT AS total_modules,
+            COALESCE(SUM(CASE WHEN mc.learner_id IS NOT NULL THEN 1 ELSE 0 END), 0)::BIGINT AS completed_modules
+        FROM course c
+        LEFT JOIN module m ON m.course_id = c.id
+        LEFT JOIN module_completion mc 
+            ON mc.module_id = m.id AND mc.learner_id = $1
+        INNER JOIN learner_course_enrollment e 
+            ON e.course_id = c.id AND e.learner_id = $1
+        GROUP BY c.id, c.title
+        ORDER BY c.id DESC
+        "#
+    )
+    .bind(&params.user_id)
+    .fetch_all(&mut *tx)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let enrolled_courses = enrolled_rows
+        .into_iter()
+        .map(|row| {
+            let total_modules: i64 = row.try_get("total_modules").unwrap_or(0);
+            let completed_modules: i64 = row.try_get("completed_modules").unwrap_or(0);
+
+            EnrolledCourse {
+                course_id: row.try_get("course_id").unwrap(),
+                title: row.try_get("title").unwrap(),
+                total_modules,
+                completed_modules,
+                progress_percent: if total_modules > 0 {
+                    (completed_modules * 100) / total_modules
+                } else {
+                    0
+                },
+                completed: total_modules > 0 && completed_modules == total_modules,
+            }
+        })
+        .collect::<Vec<_>>();
+
+    // Commit transaction
+    tx.commit().await.map_err(|e| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Failed to commit transaction: {}", e),
+        )
+    })?;
+
+    //
+    // Return combined response
+    //
+    Ok((
+        StatusCode::OK,
+        Json(UserCoursesResponse {
+            created_courses,
+            enrolled_courses,
+        }),
+    ))
 }
