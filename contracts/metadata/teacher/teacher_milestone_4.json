@@ -1,0 +1,15 @@
+{
+  "name": "Teacher Tree - Mature Tree",
+  "description": "Represents 500+ learner completions of the course.",
+  "image": "ipfs://bafybeihbyrcsvb6zi3mc2yamg4afoiz2hzw3fxnq366z3ebjqk4pcm5xia",
+  "attributes": [
+    {
+      "trait_type": "Milestone",
+      "value": 4
+    },
+    {
+      "trait_type": "Completions",
+      "value": "500+"
+    }
+  ]
+}

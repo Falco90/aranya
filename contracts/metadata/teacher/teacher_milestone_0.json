@@ -1,0 +1,15 @@
+{
+  "name": "Teacher Tree - Seed",
+  "description": "Represents the creation of the course.",
+  "image": "ipfs://bafybeifisopzpx72vywf5nmepdhiwn5kuszihlzti4nnolim7dkgprynv4",
+  "attributes": [
+    {
+      "trait_type": "Milestone",
+      "value": 0
+    },
+    {
+      "trait_type": "Completions",
+      "value": "0+"
+    }
+  ]
+}

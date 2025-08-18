@@ -1,0 +1,15 @@
+{
+  "name": "Teacher Tree - Sapling",
+  "description": "Represents 100+ learner completions of the course.",
+  "image": "ipfs://bafybeihjbgjajxlt5ntifquuyt33csmz4c6tocawjlc73ifaz4blxlsjee",
+  "attributes": [
+    {
+      "trait_type": "Milestone",
+      "value": 3
+    },
+    {
+      "trait_type": "Completions",
+      "value": "100+"
+    }
+  ]
+}
