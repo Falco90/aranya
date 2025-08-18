@@ -37,18 +37,18 @@ contract DeployContract is Script {
             [
                 "ipfs://bafkreidlkrxrfkutganrrkmtwpverbgw7y4g57dsnhm5vwjfemr2vo46ba",
                 "ipfs://bafkreiet6z4bcbyxcxnvb6y7esb3vr7juysdo6emqco6ma522iqg53rwfu",
-                "ipfs://bafkreiakqv7m5qasbn5gvy45yeniqn3zwpe7zl3nh7fw6i5bl36foeqbxy",
-                "ipfs://bafkreige7cokbqsxgqtbjr7b5unxba2uy2sns227hwvpctfr5vrpzhftwq",
+                "ipfs://bafkreift6et2dm4bdx5oenfpfqa7vgowoiovwtmot5bma4vjolzwqw5sce",
+                "ipfs://bafkreidqkfqyy5l6vlmbp3nlyzjcmrrf6xvbzwc62pp2snbiynkr3zre3i",
                 "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
             ],
             [
-                "ipfs://bafkreidlkrxrfkutganrrkmtwpverbgw7y4g57dsnhm5vwjfemr2vo46ba",
-                "ipfs://bafkreiet6z4bcbyxcxnvb6y7esb3vr7juysdo6emqco6ma522iqg53rwfu",
-                "ipfs://bafkreiakqv7m5qasbn5gvy45yeniqn3zwpe7zl3nh7fw6i5bl36foeqbxy",
-                "ipfs://bafkreige7cokbqsxgqtbjr7b5unxba2uy2sns227hwvpctfr5vrpzhftwq",
-                "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
+                "ipfs://bafkreifc52v7hwctcr6e3oz3ueknl4dcgkmhgj44uli4spkequ6xtqwzn4",
+                "ipfs://bafkreidqh57kf34zk33gntmc2dol5upp35kpmqdc2fm6qicn34iozkhfcy",
+                "ipfs://bafkreifa3syi25nxe2e6g2agy7rfuwao52tk2al22anfk3thcejkip5rkq",
+                "ipfs://bafkreigotdq4jamxn6yhc6udyqfx5kh26znqnmebwbqd2n63pnt2r6xcpq",
+                "ipfs://bafkreicgume2ptvqbsv4gus4txo3wbbx2alx6uaatwprrdgwbpejiah5ea"
             ],
-            [0, 10, 50, 100, 500]
+            [0, 1, 2, 3, 500]
         );
         address _address = address(courseManager);
 
