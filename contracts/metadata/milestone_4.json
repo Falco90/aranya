@@ -1,0 +1,15 @@
+{
+  "name": "Learner Tree - Mature Tree",
+  "description": "Represents completion of 100% of the modules in the course.",
+  "image": "ipfs://bafybeihbyrcsvb6zi3mc2yamg4afoiz2hzw3fxnq366z3ebjqk4pcm5xia",
+  "attributes": [
+    {
+      "trait_type": "Milestone",
+      "value": 4
+    },
+    {
+      "trait_type": "Progress",
+      "value": "100%"
+    }
+  ]
+}

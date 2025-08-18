@@ -1,0 +1,15 @@
+{
+  "name": "Learner Tree - Sapling",
+  "description": "Represents completing 75% of the modules in the course.",
+  "image": "ipfs://bafybeigt6xdlnpozt7cljq6dbmwbe4ooxxm32275xgerwcmsozwtlyatym",
+  "attributes": [
+    {
+      "trait_type": "Milestone",
+      "value": 3
+    },
+    {
+      "trait_type": "Progress",
+      "value": "75%"
+    }
+  ]
+}
