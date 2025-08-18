@@ -19,7 +19,11 @@ interface ILearnerNFT {
     function mint(address to) external returns (uint256);
 }
 
-contract LearnerNFT is Initializable, ERC721URIStorageUpgradeable, OwnableUpgradeable {
+contract LearnerNFT is
+    Initializable,
+    ERC721URIStorageUpgradeable,
+    OwnableUpgradeable
+{
     uint256 public tokenCounter;
     uint256 public courseId;
     string[5] public milestoneURIs;
@@ -71,6 +75,8 @@ contract LearnerNFT is Initializable, ERC721URIStorageUpgradeable, OwnableUpgrad
         uint256 tokenId = ++tokenCounter;
         _safeMint(to, tokenId);
         tokenExists[tokenId] = true;
+        tokenMilestones[tokenId] = 0;
+        updateTokenURI(tokenId, milestoneURIs[0]);
         emit LearnerNFTMinted(msg.sender, tokenId);
         return tokenId;
     }
@@ -87,12 +93,12 @@ contract LearnerNFT is Initializable, ERC721URIStorageUpgradeable, OwnableUpgrad
             (DataTransportObject)
         );
 
-        uint256 newMilestone = dto.progress_percent / 20; // ranges from 0–5
+        uint256 newMilestone = dto.progress_percent / 25;
         uint256 currentMilestone = tokenMilestones[tokenId];
 
         if (newMilestone > currentMilestone) {
             tokenMilestones[tokenId] = newMilestone;
-            updateTokenURI(tokenId, milestoneURIs[newMilestone - 1]);
+            updateTokenURI(tokenId, milestoneURIs[newMilestone]);
             emit MilestoneUpdated(msg.sender, tokenId, newMilestone);
         }
     }
