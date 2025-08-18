@@ -34,9 +34,21 @@ contract DeployContract is Script {
         CourseManager courseManager = new CourseManager(
             creatorAddress,
             learnerAddress,
-            ["tokenURI1", "TokenURI2", "TokenURI3", "TokenURI4", "TokenURI5"],
-            ["tokenURI1", "TokenURI2", "TokenURI3", "TokenURI4", "TokenURI5"],
-            [1, 50, 100, 250, 500]
+            [
+                "ipfs://bafkreidlkrxrfkutganrrkmtwpverbgw7y4g57dsnhm5vwjfemr2vo46ba",
+                "ipfs://bafkreiet6z4bcbyxcxnvb6y7esb3vr7juysdo6emqco6ma522iqg53rwfu",
+                "ipfs://bafkreiakqv7m5qasbn5gvy45yeniqn3zwpe7zl3nh7fw6i5bl36foeqbxy",
+                "ipfs://bafkreige7cokbqsxgqtbjr7b5unxba2uy2sns227hwvpctfr5vrpzhftwq",
+                "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
+            ],
+            [
+                "ipfs://bafkreidlkrxrfkutganrrkmtwpverbgw7y4g57dsnhm5vwjfemr2vo46ba",
+                "ipfs://bafkreiet6z4bcbyxcxnvb6y7esb3vr7juysdo6emqco6ma522iqg53rwfu",
+                "ipfs://bafkreiakqv7m5qasbn5gvy45yeniqn3zwpe7zl3nh7fw6i5bl36foeqbxy",
+                "ipfs://bafkreige7cokbqsxgqtbjr7b5unxba2uy2sns227hwvpctfr5vrpzhftwq",
+                "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
+            ],
+            [0, 10, 50, 100, 500]
         );
         address _address = address(courseManager);
 
@@ -51,19 +63,19 @@ contract DeployContract is Script {
     }
 }
 
-contract InteractWithContract is Script {
-    function run() external {
-        string memory addressString = vm.readLine(
-            string.concat(dirPath, contractName, "_address", ".txt")
-        );
-        address _address = vm.parseAddress(addressString);
+// contract InteractWithContract is Script {
+//     function run() external {
+//         string memory addressString = vm.readLine(
+//             string.concat(dirPath, contractName, "_address", ".txt")
+//         );
+//         address _address = vm.parseAddress(addressString);
 
-        uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-        vm.startBroadcast(deployerPrivateKey);
-        ICourseManager courseManager = ICourseManager(_address);
-        courseManager.createCourse(2, "Test Course", "ThaiCourse", "THAI");
-        courseManager.enroll(2);
+//         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
+//         vm.startBroadcast(deployerPrivateKey);
+//         ICourseManager courseManager = ICourseManager(_address);
+//         courseManager.createCourse(2, "Test Course", "ThaiCourse", "THAI");
+//         courseManager.enroll(2);
 
-        vm.stopBroadcast();
-    }
-}
+//         vm.stopBroadcast();
+//     }
+// }
