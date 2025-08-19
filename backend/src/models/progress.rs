@@ -2,14 +2,14 @@ use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use sqlx::FromRow;
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct CourseProgressQuery {
     pub learner_id: String,
     pub course_id: i64,
 }
 
-#[derive(Serialize, FromRow)]
+#[derive(Debug, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct CourseProgressResponse {
     pub completed_lesson_ids: Vec<i64>,
@@ -44,6 +44,14 @@ pub struct CompletedLessonsResponse {
 pub struct ModuleCompleteRequest {
     pub learner_id: String,
     pub module_id: i64,
+    pub course_id: i64
+}
+
+#[derive(Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseCompleteRequest {
+    pub learner_id: String,
+    pub course_id: i64,
 }
 
 #[derive(Deserialize)]
