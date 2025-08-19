@@ -4,14 +4,16 @@ import CourseSidebar from './CourseSidebar';
 import LessonContent from './LessonContent';
 import QuizContent from './QuizContent';
 import { QuizResult } from '@/types/course';
+import { useAccount } from 'wagmi';
 
 const CourseViewerLayout: React.FC = () => {
-  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted, isModuleCompleted } = useCourseViewer();
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted, isModuleCompleted, progress } = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { isConnected, chainId, address } = useAccount();
   // Set initial active module and lesson
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
@@ -47,25 +49,64 @@ const CourseViewerLayout: React.FC = () => {
 
     setIsSubmitting(true);
 
+    // Mark lesson complete in state
     markLessonComplete(activeLesson.id);
-    const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
 
     try {
+      // Manually compute "new completed lessons" instead of relying on async state update
+      const newCompletedLessons = {
+        ...progress.completedLessons,
+        [activeLesson.id]: true,
+      };
+
+      // Check if all lessons in this module are now completed
+      const allLessonsCompleted = activeModule.lessons.every(
+        (lesson) => newCompletedLessons[lesson.id]
+      );
+
+      console.log("all lessons completed: ", allLessonsCompleted);
+
+      // Quiz is considered completed if there's no quiz
+      const quizCompleted = !activeModule.quiz || isQuizCompleted(activeModule.quiz.id);
+
+      console.log("quiz completed; ", quizCompleted);
+
+      const moduleComplete = allLessonsCompleted && quizCompleted;
+
+      console.log("module complete: ", moduleComplete);
+
+      // Sync lesson completion to backend
       await fetch('http://localhost:4000/complete-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ lessonId: activeLesson.id, learnerId }),
+        body: JSON.stringify({ lessonId: activeLesson.id, learnerId: address }),
       });
 
-      const moduleComplete = isModuleCompleted(activeModule.id);
+      // Sync module completion if needed
       if (moduleComplete) {
-        await fetch('http://localhost:4000/complete-module', {
+        const res = await fetch('http://localhost:4000/complete-module', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ moduleId: activeModule.id, learnerId }),
+          body: JSON.stringify({ moduleId: activeModule.id, learnerId: address, courseId: course.id }),
         });
+
+        const data = await res.json();
+        console.log("module completed data", data);
+
+        if (data.course_completed) {
+          const res = await fetch('http://localhost:4000/complete-course', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ learnerId: address, courseId: course.id }),
+          });
+
+          const data = await res.json();
+          console.log("course completed data", data);
+        }
+
       }
 
+      // Navigate to next lesson or quiz
       const nextLesson = getNextLesson();
       if (nextLesson) {
         handleLessonChange(nextLesson.moduleId, nextLesson.lessonId);

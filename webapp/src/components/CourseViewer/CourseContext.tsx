@@ -77,6 +77,7 @@ export const CourseViewerProvider: React.FC<{
     }
     const isModuleCompleted = (moduleId: number) => {
         const module = course.modules.find((m) => m.id === moduleId)
+        console.log("module: ", module);
         if (!module) return false
         // Check if all lessons are completed
         const allLessonsCompleted = module.lessons.every((lesson) =>
