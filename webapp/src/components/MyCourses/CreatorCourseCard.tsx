@@ -12,9 +12,9 @@ const CreatorCourseCard: React.FC<CreatorCourseCardProps> = ({
     course,
     nft,
 }) => {
-    const completions = getAttribute(nft, "Completions")
+    const completions = getAttribute(nft, "completions");
     const nextMilestone = getNextMilestone(completions);
-    const canUpgrade = nft && completions >= nextMilestone
+    const canUpgrade = nft && course.numCompleted >= nextMilestone
     const completionRate =
         course.numLearners > 0
             ? Math.round((course.numCompleted / course.numLearners) * 100)
