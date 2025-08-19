@@ -1,63 +1,92 @@
-import React from 'react'
-import Link from 'next/link'
-import { BookOpenIcon, CheckCircleIcon } from 'lucide-react'
-import { LearnerCourseSummary } from '../../types/course'
-
-interface LearnerCourseCardProps {
-  course: LearnerCourseSummary
-}
-
-const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({ course }) => {
-  return (
-    <div className="bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden flex flex-col">
-      <div className="p-6 flex-grow">
-        <div className="flex justify-between mb-4">
-          <h3 className="font-bold text-stone-800 text-lg">
-            {course.title || 'Untitled Course'}
-          </h3>
-          {course.completed && (
-            <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full flex items-center">
-              <CheckCircleIcon className="h-3 w-3 mr-1" />
-              Completed
-            </span>
-          )}
-        </div>
-
-        <p className="text-stone-600 text-sm mb-4">
-          Modules completed: {course.completedModules} / {course.totalModules}
-        </p>
-
-        <div className="mb-4">
-          <div className="text-sm text-stone-700 mb-1">
-            Progress: {course.progressPercent}%
-          </div>
-          <div className="w-full bg-stone-200 rounded-full h-2">
-            <div
-              className="bg-emerald-600 h-2 rounded-full"
-              style={{ width: `${course.progressPercent}%` }}
-            ></div>
-          </div>
-        </div>
-      </div>
-
-      <div className="flex border-t border-stone-200">
-        <div className="w-1/2 border-r border-stone-200 p-4 flex flex-col items-center">
-          <div className="mt-2 text-xs text-stone-600 text-center">
-            Your Learning Tree
-          </div>
-        </div>
-        <div className="w-1/2 p-4 flex items-center justify-center">
-          <Link
-            href={`/view/${course.courseId}`}
-            className="w-full flex justify-center items-center px-4 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 text-sm"
-          >
-            <BookOpenIcon className="h-4 w-4 mr-2" />
-            Continue Learning
-          </Link>
-        </div>
-      </div>
-    </div>
-  )
-}
-
-export default LearnerCourseCard
+// import React from 'react'
+// import { Link } from 'react-router-dom'
+// import { LearnerNFT } from '../CourseBuilder/CourseContext'
+// import LearnerTreeNFT from '../NFT/LearnerTreeNFT'
+// import { BookOpenIcon, CheckCircleIcon, ArrowRightIcon } from 'lucide-react'
+// import { LearnerCourseSummary } from '../../types/course'
+// interface LearnerCourseCardProps {
+//   course: LearnerCourseSummary
+//   nft: LearnerNFT | null | undefined
+// }
+// const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
+//   course,
+//   nft,
+// }) => {
+//   // Calculate next milestone based on progress
+//   const nextMilestone =
+//     course.progressPercent < 25
+//       ? 25
+//       : course.progressPercent < 50
+//         ? 50
+//         : course.progressPercent < 75
+//           ? 75
+//           : 100
+//   // Determine if milestone reached for upgrading tree
+//   const canUpgrade =
+//     course.progressPercent >= nextMilestone && !course.completed
+//   return (
+//     <div className="bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
+//       <div className="flex">
+//         {/* Left side content */}
+//         <div className="p-6 flex-grow">
+//           <div className="flex justify-between mb-2">
+//             <h3 className="font-bold text-stone-800 text-lg">{course.title}</h3>
+//             {course.completed && (
+//               <span className="bg-emerald-100 text-emerald-800 text-xs px-2 py-1 rounded-full flex items-center">
+//                 <CheckCircleIcon className="h-3 w-3 mr-1" />
+//                 Completed
+//               </span>
+//             )}
+//           </div>
+//           <div className="flex items-center text-sm text-stone-600 mb-3">
+//             <span>
+//               {course.completedModules} of {course.totalModules} modules
+//               completed
+//             </span>
+//           </div>
+//           <div className="mb-4">
+//             <div className="flex justify-between text-sm text-stone-700 mb-1">
+//               <span>Progress</span>
+//               <span>{course.progressPercent}%</span>
+//             </div>
+//             <div className="w-full bg-stone-200 rounded-full h-2">
+//               <div
+//                 className="bg-emerald-600 h-2 rounded-full"
+//                 style={{
+//                   width: `${course.progressPercent}%`,
+//                 }}
+//               ></div>
+//             </div>
+//           </div>
+//           <Link
+//             to={`/view/${course.courseId}`}
+//             className="inline-flex items-center px-4 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 text-sm"
+//           >
+//             <BookOpenIcon className="h-4 w-4 mr-2" />
+//             Continue Learning
+//           </Link>
+//         </div>
+//         {/* Right side with tree */}
+//         <div className="w-48 border-l border-stone-200 flex flex-col items-center justify-center p-4 bg-stone-50">
+//           <LearnerTreeNFT
+//             stage={nft?.stage || 'seed'}
+//             progress={course.progressPercent}
+//             size="sm"
+//             showDetails={false}
+//           />
+//           <div className="mt-2 text-xs text-stone-600 text-center">
+//             Next milestone: {nextMilestone}%
+//           </div>
+//           <button
+//             className={`mt-2 px-3 py-1.5 text-xs rounded-md w-full flex items-center justify-center ${canUpgrade ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-stone-200 text-stone-500 cursor-not-allowed'}`}
+//             disabled={!canUpgrade}
+//           >
+//             Upgrade Tree
+//             {canUpgrade && <ArrowRightIcon className="h-3 w-3 ml-1" />}
+//           </button>
+//         </div>
+//       </div>
+//     </div>
+//   )
+// }
+// export default LearnerCourseCard

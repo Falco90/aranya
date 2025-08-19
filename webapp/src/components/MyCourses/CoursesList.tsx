@@ -57,7 +57,7 @@ export default function CoursesList() {
               const metadata = await fetch(ipfsToHttp(tokenURI)).then(r => r.json());
               console.log(metadata);
 
-              return { ...course, nft: metadata }
+              return { ...course, nft: { address: nftAddr, metadata } }
             } catch (err) {
               console.error("Error fetching creator NFT:", err)
               return { ...course, nft: null }
@@ -65,32 +65,32 @@ export default function CoursesList() {
           })
         )
 
-        const enrolledWithNFTs = await Promise.all(
-          data.enrolledCourses.map(async (course: LearnerCourseSummary) => {
-            try {
-              const nftAddr = await readContract(config, {
-                address: COURSE_MANAGER_ADDRESS,
-                abi: ICourseManager,
-                functionName: "getLearnerNFTAddress",
-                args: [BigInt(course.courseId)],
-              })
+        // const enrolledWithNFTs = await Promise.all(
+        //   data.enrolledCourses.map(async (course: LearnerCourseSummary) => {
+        //     try {
+        //       const nftAddr = await readContract(config, {
+        //         address: COURSE_MANAGER_ADDRESS,
+        //         abi: ICourseManager,
+        //         functionName: "getLearnerNFTAddress",
+        //         args: [BigInt(course.courseId)],
+        //       })
 
-              const progress = await readContract(config, {
-                address: nftAddr as `0x${string}`,
-                abi: ILearnerNft.abi,
-                functionName: "getProgress", // adjust to your ABI
-                args: [address],
-              })
+        //       const progress = await readContract(config, {
+        //         address: nftAddr as `0x${string}`,
+        //         abi: ILearnerNft.abi,
+        //         functionName: "getProgress", // adjust to your ABI
+        //         args: [address],
+        //       })
 
-              return { ...course, nft: { progress } }
-            } catch (err) {
-              console.error("Error fetching learner NFT:", err)
-              return { ...course, nft: null }
-            }
-          })
-        )
+        //       return { ...course, nft: { progress } }
+        //     } catch (err) {
+        //       console.error("Error fetching learner NFT:", err)
+        //       return { ...course, nft: null }
+        //     }
+        //   })
+        // )
 
-        setCourses({ created: createdWithNFTs, enrolled: enrolledWithNFTs })
+        setCourses({ created: createdWithNFTs, enrolled: [] })
       } catch (err) {
         console.error("Error fetching:", err)
       }
