@@ -147,6 +147,7 @@ pub struct UserQuery {
 
 // Courses created by user
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct CreatedCourse {
     pub course_id: i64,
     pub title: String,
@@ -156,6 +157,7 @@ pub struct CreatedCourse {
 
 // Courses enrolled in by user
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct EnrolledCourse {
     pub course_id: i64,
     pub title: String,
@@ -166,6 +168,7 @@ pub struct EnrolledCourse {
 }
 
 #[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct UserCoursesResponse {
     pub created_courses: Vec<CreatedCourse>,
     pub enrolled_courses: Vec<EnrolledCourse>,
