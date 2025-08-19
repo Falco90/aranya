@@ -13,7 +13,7 @@ import {
 } from '@tanstack/react-query';
 
 // Create wagmi + rainbowkit config
-const config = getDefaultConfig({
+export const config = getDefaultConfig({
   appName: 'My RainbowKit App',
   projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID!, // WalletConnect Cloud Project ID
   chains: [flareTestnet],
