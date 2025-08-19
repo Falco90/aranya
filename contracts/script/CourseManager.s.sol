@@ -42,11 +42,11 @@ contract DeployContract is Script {
                 "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
             ],
             [
-                "ipfs://bafkreifc52v7hwctcr6e3oz3ueknl4dcgkmhgj44uli4spkequ6xtqwzn4",
-                "ipfs://bafkreidqh57kf34zk33gntmc2dol5upp35kpmqdc2fm6qicn34iozkhfcy",
-                "ipfs://bafkreifa3syi25nxe2e6g2agy7rfuwao52tk2al22anfk3thcejkip5rkq",
-                "ipfs://bafkreigotdq4jamxn6yhc6udyqfx5kh26znqnmebwbqd2n63pnt2r6xcpq",
-                "ipfs://bafkreicgume2ptvqbsv4gus4txo3wbbx2alx6uaatwprrdgwbpejiah5ea"
+                "ipfs://bafkreibut5xzzjfi35bn7drkia5zmagjjnubuxvavyejmvdrob7ptsdnla",
+                "ipfs://bafkreia5p6lglj6vyf54z4lxlwfg6y3icrcwguj74fdp6rox2xrf3sw5ya",
+                "ipfs://bafkreiahrdxbceyizglojlduqvw5wbskqkrxxsub2qhikyjkcgqkibgz3u",
+                "ipfs://bafkreidcietdnovqwdj22dqsoovfuk3euo63yifjfxhiwnfbgf7iereoaa",
+                "ipfs://bafkreigiqq3pxu6egvdb5zcblfypoolgnro6ovhg6sd23qwapmh5bd4axa"
             ],
             [0, 1, 2, 3, 500]
         );
