@@ -5,11 +5,13 @@ use axum::{
     response::IntoResponse,
 };
 use serde_json::json;
-use sqlx::{Pool, Postgres, Transaction, Row};
+use sqlx::{Pool, Postgres, Row, Transaction};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz, UserCoursesResponse, UserQuery
+    AnswerOption, Course, CourseCreatorResponse, CourseQuery, CreateCoursePayload, CreatedCourse,
+    EnrolledCourse, JoinCourseRequest, Lesson, Module, NumCompletedResponse, Question, Quiz,
+    UserCoursesResponse, UserQuery,
 };
 
 pub async fn create_course(
@@ -170,17 +172,17 @@ pub async fn get_num_completed(
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
     println!("params {:?}", params);
-    let result: Option<NumCompletedResponse> = sqlx::query_as::<_, NumCompletedResponse>(
+
+    // Count how many learners have completed this course
+    let result: NumCompletedResponse = sqlx::query_as::<_, NumCompletedResponse>(
         r#"
-        SELECT
-            num_completed
-        FROM course
-        WHERE id = $1
+        SELECT COUNT(*)::bigint AS num_completed
+        FROM course_completion
+        WHERE course_id = $1
         "#,
     )
     .bind(&params.course_id)
-    // .bind(2)
-    .fetch_optional(&pool)
+    .fetch_one(&pool)
     .await
     .map_err(|e| {
         (
@@ -191,10 +193,7 @@ pub async fn get_num_completed(
 
     println!("Result: {:?}", result);
 
-    match result {
-        Some(progress) => Ok(Json(progress)),
-        None => Err((StatusCode::NOT_FOUND, "Course not found".to_string())),
-    }
+    Ok(Json(result))
 }
 
 #[derive(Debug, sqlx::FromRow)]

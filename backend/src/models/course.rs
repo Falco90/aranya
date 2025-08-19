@@ -82,7 +82,7 @@ pub struct CreatorQuery {
 #[derive(Debug, Deserialize, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct NumCompletedResponse {
-    pub num_completed: i32,
+    pub num_completed: i64,
 }
 
 #[derive(Debug, Deserialize, Serialize, FromRow)]
