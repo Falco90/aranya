@@ -4,7 +4,7 @@ import { useEffect, useState } from "react"
 import { useAccount } from "wagmi"
 import { readContract } from "wagmi/actions"
 import CreatorCourseCard from "./CreatorCourseCard"
-// import LearnerCourseCard from "./LearnerCourseCard"
+import LearnerCourseCard from "./LearnerCourseCard"
 import EmptyState from "./EmptyState"
 
 import { config } from "../Wallet/Providers"
@@ -65,32 +65,35 @@ export default function CoursesList() {
           })
         )
 
-        // const enrolledWithNFTs = await Promise.all(
-        //   data.enrolledCourses.map(async (course: LearnerCourseSummary) => {
-        //     try {
-        //       const nftAddr = await readContract(config, {
-        //         address: COURSE_MANAGER_ADDRESS,
-        //         abi: ICourseManager,
-        //         functionName: "getLearnerNFTAddress",
-        //         args: [BigInt(course.courseId)],
-        //       })
+        const enrolledWithNFTs = await Promise.all(
+          data.enrolledCourses.map(async (course: LearnerCourseSummary) => {
+            try {
+              const nftAddr = await readContract(config, {
+                address: COURSE_MANAGER_ADDRESS,
+                abi: ICourseManager,
+                functionName: "getLearnerNFTAddress",
+                args: [BigInt(course.courseId)],
+              })
 
-        //       const progress = await readContract(config, {
-        //         address: nftAddr as `0x${string}`,
-        //         abi: ILearnerNft.abi,
-        //         functionName: "getProgress", // adjust to your ABI
-        //         args: [address],
-        //       })
+              const tokenURI = await readContract(config, {
+                address: nftAddr as `0x${string}`,
+                abi: erc721Abi,
+                functionName: "tokenURI", // adjust to your ABI
+                args: [BigInt(1)],
+              })
 
-        //       return { ...course, nft: { progress } }
-        //     } catch (err) {
-        //       console.error("Error fetching learner NFT:", err)
-        //       return { ...course, nft: null }
-        //     }
-        //   })
-        // )
+              const metadata = await fetch(ipfsToHttp(tokenURI)).then(r => r.json());
+              console.log(metadata);
 
-        setCourses({ created: createdWithNFTs, enrolled: [] })
+              return { ...course, nft: { address: nftAddr, metadata } }
+            } catch (err) {
+              console.error("Error fetching learner NFT:", err)
+              return { ...course, nft: null }
+            }
+          })
+        )
+
+        setCourses({ created: createdWithNFTs, enrolled: enrolledWithNFTs })
       } catch (err) {
         console.error("Error fetching:", err)
       }
@@ -135,7 +138,7 @@ export default function CoursesList() {
             )}
           </div>
           {/* Learner View */}
-          {/* {activeView === 'learner' && (
+          {activeView === 'learner' && (
             <div>
               <div className="mb-6">
                 <h2 className="text-xl font-bold text-stone-800 mb-2">
@@ -148,11 +151,11 @@ export default function CoursesList() {
               </div>
               {courses.enrolled ? (
                 <div className="space-y-4">
-                  {learnerCourses.map((learnerCourse) => (
+                  {courses.enrolled.map((learnerCourse) => (
                     <LearnerCourseCard
                       key={learnerCourse.courseId}
                       course={learnerCourse}
-                      nft={progress.learnerNFTs[`${learnerCourse.courseId}`]}
+                      nft={learnerCourse.nft}
                     />
                   ))}
                 </div>
@@ -165,7 +168,7 @@ export default function CoursesList() {
                 />
               )}
             </div>
-          )} */}
+          )}
           {/* Creator View */}
           {activeView === 'creator' && (
             <div>
