@@ -106,7 +106,7 @@ export type CreatorCourseSummary = {
   courseId: number;
   title: string;
   numCompleted: number;
-  numEnrolled: number;
+  numLearners: number;
 }
 
 export type LearnerCourseSummary = {
@@ -116,4 +116,14 @@ export type LearnerCourseSummary = {
   completedModules: number
   progressPercent: number
   completed: boolean
+}
+
+export type CreatorNFT = {
+  name: string;
+  description: string;
+  image: string;
+  attributes: {
+    trait_type: string;
+    value: number | string;
+  }[];
 }
