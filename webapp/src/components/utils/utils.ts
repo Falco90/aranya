@@ -28,8 +28,8 @@ export function getAttribute(nft: CreatorNFT, trait: string): number {
 }
 
 export function truncateAddress(address: string): string {
-    if (!address || address.length < 10) return address; // fallback for invalid addresses
-    const start = address.slice(0, 6); // "0x" + first 4 chars
-    const end = address.slice(-4);     // last 4 chars
+    if (!address || address.length < 10) return address;
+    const start = address.slice(0, 6);
+    const end = address.slice(-4);
     return `${start}...${end}`;
 }

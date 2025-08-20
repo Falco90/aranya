@@ -8,7 +8,7 @@ import {
     ArrowRightIcon,
 } from 'lucide-react'
 import { CoursePreview } from '@/types/course';
-import { truncateAddress } from '../utils/utls';
+import { truncateAddress } from '../utils/utils';
 
 interface CoursePreviewCardProps {
     course: CoursePreview

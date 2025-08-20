@@ -3,7 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { BookOpenIcon, CheckCircleIcon, ArrowRightIcon } from 'lucide-react'
 import { LearnerCourseSummary } from '../../types/course'
-import { getAttribute, getNextLearnerMilestone, ipfsToHttp } from '../utils/utls'
+import { getAttribute, getNextLearnerMilestone, ipfsToHttp } from '../utils/utils'
 import UpgradeNFTModal from './UpgradeLearnerNFTModal'
 interface LearnerCourseCardProps {
     course: LearnerCourseSummary

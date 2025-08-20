@@ -11,7 +11,7 @@ import { config } from "../Wallet/Providers"
 import { erc721Abi } from "viem"
 import ICourseManager from "../../app/abis/aranya/ICourseManager.json"
 import { BookOpenIcon, LeafIcon, PenToolIcon } from "lucide-react"
-import { ipfsToHttp } from "../utils/utls"
+import { ipfsToHttp } from "../utils/utils"
 import { CreatorCourseSummary, LearnerCourseSummary, NFTData } from "@/types/course"
 
 const COURSE_MANAGER_ADDRESS = process.env.NEXT_PUBLIC_COURSE_MANAGER_ADDRESS as `0x${string}`

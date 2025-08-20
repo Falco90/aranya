@@ -2,7 +2,7 @@ import React, { useState } from 'react'
 import Link from 'next/link';
 import { PencilIcon, UsersIcon, ArrowRightIcon } from 'lucide-react'
 import { CreatorCourseSummary, CreatorNFT } from '../../types/course'
-import { getAttribute, getNextCreatorMilestone, ipfsToHttp } from '../utils/utls';
+import { getAttribute, getNextCreatorMilestone, ipfsToHttp } from '../utils/utils';
 import Image from 'next/image';
 import UpgradeNFTModal from './UpgradeCreatorNFTModal';
 interface CreatorCourseCardProps {
