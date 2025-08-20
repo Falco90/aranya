@@ -14,17 +14,14 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
     nft,
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    // Calculate next milestone based on progress
-    console.log(course);
     const progress = getAttribute(nft.metadata, "Progress");
     const nextMilestone = getNextLearnerMilestone(progress);
-    // Determine if milestone reached for upgrading tree
+
     const canUpgrade =
         course.progressPercent >= nextMilestone;
     return (
         <div className="bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
             <div className="flex">
-                {/* Left side content */}
                 <div className="p-6 flex-grow">
                     <div className="flex justify-between mb-2">
                         <h3 className="font-bold text-stone-800 text-lg">{course.title}</h3>
@@ -56,14 +53,13 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
                         </div>
                     </div>
                     <Link
-                        href={`/view/${course.courseId}`}
+                        href={`/courses/${course.courseId}`}
                         className="inline-flex items-center px-4 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 text-sm"
                     >
                         <BookOpenIcon className="h-4 w-4 mr-2" />
                         Continue Learning
                     </Link>
                 </div>
-                {/* Right side with tree */}
                 <div className="w-48 border-l border-stone-200 flex flex-col items-center justify-center p-4 bg-stone-50">
                     <Image
                         src={ipfsToHttp(nft.metadata.image)}
@@ -78,6 +74,7 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
                     <button
                         className={`mt-2 px-3 py-1.5 text-xs rounded-md w-full flex items-center justify-center ${canUpgrade ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-stone-200 text-stone-500 cursor-not-allowed'}`}
                         disabled={!canUpgrade}
+                        onClick={() => setIsModalOpen(true)}
                     >
                         Upgrade Tree
                         {canUpgrade && <ArrowRightIcon className="h-3 w-3 ml-1" />}
