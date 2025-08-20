@@ -1,9 +1,10 @@
-import React from 'react'
+import React, { useState } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import { BookOpenIcon, CheckCircleIcon, ArrowRightIcon } from 'lucide-react'
 import { LearnerCourseSummary } from '../../types/course'
-import { ipfsToHttp } from '../utils/utls'
+import { getAttribute, getNextLearnerMilestone, ipfsToHttp } from '../utils/utls'
+import UpgradeNFTModal from './UpgradeLearnerNFTModal'
 interface LearnerCourseCardProps {
     course: LearnerCourseSummary
     nft: any
@@ -12,18 +13,14 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
     course,
     nft,
 }) => {
+    const [isModalOpen, setIsModalOpen] = useState(false);
     // Calculate next milestone based on progress
-    const nextMilestone =
-        course.progressPercent < 25
-            ? 25
-            : course.progressPercent < 50
-                ? 50
-                : course.progressPercent < 75
-                    ? 75
-                    : 100
+    console.log(course);
+    const progress = getAttribute(nft.metadata, "Progress");
+    const nextMilestone = getNextLearnerMilestone(progress);
     // Determine if milestone reached for upgrading tree
     const canUpgrade =
-        course.progressPercent >= nextMilestone && !course.completed
+        course.progressPercent >= nextMilestone;
     return (
         <div className="bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
             <div className="flex">
@@ -86,6 +83,7 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
                         {canUpgrade && <ArrowRightIcon className="h-3 w-3 ml-1" />}
                     </button>
                 </div>
+                <UpgradeNFTModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} nftAddress={nft.address} courseId={course.courseId} />
             </div>
         </div>
     )

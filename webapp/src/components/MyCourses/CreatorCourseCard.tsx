@@ -2,9 +2,9 @@ import React, { useState } from 'react'
 import Link from 'next/link';
 import { PencilIcon, UsersIcon, ArrowRightIcon } from 'lucide-react'
 import { CreatorCourseSummary, CreatorNFT } from '../../types/course'
-import { getAttribute, getNextMilestone, ipfsToHttp } from '../utils/utls';
+import { getAttribute, getNextCreatorMilestone, ipfsToHttp } from '../utils/utls';
 import Image from 'next/image';
-import UpgradeNFTModal from './UpgradeNFTModal';
+import UpgradeNFTModal from './UpgradeCreatorNFTModal';
 interface CreatorCourseCardProps {
     course: CreatorCourseSummary
     nft: any
@@ -14,8 +14,8 @@ const CreatorCourseCard: React.FC<CreatorCourseCardProps> = ({
     nft,
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
-    const completions = getAttribute(nft.metadata, "Completions");
-    const nextMilestone = getNextMilestone(completions);
+    const completions = nft?.metadata ? getAttribute(nft.metadata, "Completions") : 0;
+    const nextMilestone = getNextCreatorMilestone(completions);
     const canUpgrade = nft && course.numCompleted >= nextMilestone
     const completionRate =
         course.numLearners > 0
@@ -58,7 +58,7 @@ const CreatorCourseCard: React.FC<CreatorCourseCardProps> = ({
                 </div>
                 <div className="w-48 border-l border-stone-200 flex flex-col items-center justify-center p-4 bg-stone-50">
                     <Image
-                        src={ipfsToHttp(nft.metadata.image)}
+                        src={ipfsToHttp(nft!.metadata.image)}
                         alt="NFT"
                         width={500}
                         height={500}
