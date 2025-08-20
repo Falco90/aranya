@@ -36,34 +36,11 @@ const Navbar: React.FC<NavbarProps> = ({
             <SearchIcon className="absolute left-3 top-2.5 h-4 w-4 text-stone-400" />
           </div>
           {isConnected ? <>
-            <Link href="/view" className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 flex items-center">
+            <Link href="/my-courses" className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 flex items-center">
               <BookOpenIcon className="h-4 w-4 mr-2" />
               My Courses
             </Link>
-            <Link href="/nft-gallery" className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 flex items-center">
-              <LeafIcon className="h-4 w-4 mr-2" />
-              My NFTs
-            </Link>
-            <div className="relative group">
-              <button className="flex items-center px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 focus:outline-none">
-                <UserIcon className="h-4 w-4 mr-2" />
-                My Profile
-              </button>
-              <div className="absolute right-0 w-48 mt-2 origin-top-right bg-white border border-stone-200 rounded-md shadow-lg opacity-0 invisible group-hover:opacity-100 group-hover:visible transition duration-150 ease-in-out">
-                <div className="py-1">
-                  <Link href="/builder" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-100">
-                    Dashboard
-                  </Link>
-                  <Link href="/view" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-100">
-                    My Learning
-                  </Link>
-                  <Link href="/nft-gallery" className="block px-4 py-2 text-sm text-stone-700 hover:bg-stone-100">
-                    NFT Collection
-                  </Link>
-                </div>
-              </div>
-            </div>
-            <ConnectButton />
+            <ConnectButton showBalance={false} />
           </> : <ConnectButton />}
         </div>
         {/* Mobile menu button */}
