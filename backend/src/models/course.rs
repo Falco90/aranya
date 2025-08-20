@@ -177,8 +177,9 @@ pub struct UserCoursesResponse {
 #[derive(Debug, Serialize, FromRow)]
 #[serde(rename_all = "camelCase")]
 pub struct CoursePreview {
+    pub course_id: i64,
     pub title: String,
-    pub creator: String,
+    pub creator_id: String,
     pub num_enrollments: i64,
     pub num_completions: i64,
     pub num_modules: i64,

@@ -170,10 +170,11 @@ pub async fn join_course(
 pub async fn get_top_courses(
     State(pool): State<Pool<Postgres>>,
 ) -> Result<Json<Vec<CoursePreview>>, (StatusCode, String)> {
-
-    let rows = sqlx::query!(
+    // SQL query: get top 5 courses by number of enrollments
+    let rows = sqlx::query(
         r#"
         SELECT
+            c.id,
             c.title,
             cr.id AS creator,
             COALESCE(enrollments.count, 0) AS num_enrollments,
@@ -198,23 +199,23 @@ pub async fn get_top_courses(
         ) AS modules ON true
         ORDER BY num_enrollments DESC
         LIMIT 5
-        "#
+        "#,
     )
     .fetch_all(&pool)
     .await
     .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Map database rows to CoursePreview structs
     let previews: Vec<CoursePreview> = rows
         .into_iter()
         .map(|row| CoursePreview {
-            title: row.title,
-            creator: row.creator,
-            num_enrollments: row.num_enrollments.unwrap_or(0),
-            num_completions: row.num_completions.unwrap_or(0),
-            num_modules: row.num_modules.unwrap_or(0),
+            course_id: row.try_get("id").unwrap(),
+            title: row.try_get("title").unwrap(),
+            creator_id: row.try_get("creator").unwrap(),
+            num_enrollments: row.try_get("num_enrollments").unwrap(),
+            num_completions: row.try_get("num_completions").unwrap(),
+            num_modules: row.try_get("num_modules").unwrap(),
         })
-        .collect();
+        .collect::<Vec<_>>();
 
     Ok(Json(previews))
 }
