@@ -2,6 +2,7 @@
 
 import '@rainbow-me/rainbowkit/styles.css';
 import {
+  lightTheme,
   getDefaultConfig,
   RainbowKitProvider,
 } from '@rainbow-me/rainbowkit';
@@ -27,7 +28,14 @@ export default function Providers({ children }: { children: React.ReactNode }) {
   return (
     <WagmiProvider config={config}>
       <QueryClientProvider client={queryClient}>
-        <RainbowKitProvider>
+        <RainbowKitProvider
+          theme={lightTheme({
+            accentColor: 'oklch(59.6% 0.145 163.225)',
+            accentColorForeground: 'white',
+            borderRadius: 'small',
+            fontStack: 'system',
+            overlayBlur: 'small',
+          })}>
           {children}
         </RainbowKitProvider>
       </QueryClientProvider>
