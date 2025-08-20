@@ -107,6 +107,7 @@ export type CreatorCourseSummary = {
   title: string;
   numCompleted: number;
   numLearners: number;
+  nft: NFTData;
 }
 
 export type LearnerCourseSummary = {
@@ -116,6 +117,7 @@ export type LearnerCourseSummary = {
   completedModules: number
   progressPercent: number
   completed: boolean
+  nft: NFTData
 }
 
 export type CreatorNFT = {
@@ -126,4 +128,17 @@ export type CreatorNFT = {
     trait_type: string;
     value: number | string;
   }[];
+}
+
+export type NFTData = {
+  address: `0x${string}`
+  metadata: {
+    nam?: string
+    description: string
+    image: string
+    attributes: {
+      trait_type: string;
+      value: number | string;
+    }[];
+  }
 }
