@@ -1,8 +1,16 @@
 import React from 'react';
+import Navbar from '@/components/Layout/Navbar';
 import CourseViewerClient from '@/components/CourseViewer/CourseViewerClient';
 import { Course } from '../../../types/course';
 
-export default async function CoursePage({ params }: { params: { courseId: string } }) {
+interface CoursePageProps {
+  isLoggedIn: boolean;
+  onLogin: () => void;
+  onLogout: () => void;
+  params: { courseId: string };
+}
+
+const CoursePage = async ({ isLoggedIn, onLogin, onLogout, params }: CoursePageProps) => {
   const courseId = params.courseId;
 
   const getCourseUrl = new URL("http://localhost:4000/get-course");
@@ -15,5 +23,12 @@ export default async function CoursePage({ params }: { params: { courseId: strin
 
   const course: Course = await courseRes.json();
 
-  return <CourseViewerClient course={course} />;
-}
+  return (
+    <div className="w-full min-h-screen bg-stone-50">
+      <Navbar isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
+      <CourseViewerClient course={course} />
+    </div>
+  );
+};
+
+export default CoursePage;
