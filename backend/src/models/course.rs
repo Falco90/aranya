@@ -184,3 +184,9 @@ pub struct CoursePreview {
     pub num_completions: i64,
     pub num_modules: i64,
 }
+
+#[derive(Debug, Serialize, FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct LearnerId {
+    pub learner_id: String,
+}

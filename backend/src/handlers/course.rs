@@ -9,9 +9,7 @@ use sqlx::{Pool, Postgres, Row, Transaction};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseCreatorResponse, CoursePreview, CourseQuery, CreateCoursePayload,
-    CreatedCourse, EnrolledCourse, JoinCourseRequest, Lesson, Module, NumCompletedResponse,
-    Question, Quiz, UserCoursesResponse, UserQuery,
+    AnswerOption, Course, CourseCreatorResponse, CoursePreview, CourseQuery, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, LearnerId, Lesson, Module, NumCompletedResponse, Question, Quiz, UserCoursesResponse, UserQuery
 };
 
 pub async fn create_course(
@@ -218,6 +216,30 @@ pub async fn get_top_courses(
         .collect::<Vec<_>>();
 
     Ok(Json(previews))
+}
+
+pub async fn get_learners_by_course(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseQuery>,
+) -> Result<Json<Vec<LearnerId>>, (StatusCode, String)> {
+    let learners = sqlx::query_as::<_, LearnerId>(
+        r#"
+        SELECT learner_id
+        FROM learner_course_enrollment
+        WHERE course_id = $1
+        "#,
+    )
+    .bind(&params.course_id)
+    .fetch_all(&pool)
+    .await
+    .map_err(|err| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database query failed: {}", err),
+        )
+    })?;
+
+    Ok(Json(learners))
 }
 
 pub async fn get_num_completed(
