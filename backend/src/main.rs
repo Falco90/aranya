@@ -1,6 +1,5 @@
 mod db;
 mod handlers;
-pub mod helpers;
 mod models;
 mod routes;
 
@@ -16,7 +15,7 @@ async fn main() -> Result<(), Box<dyn Error>> {
     let pool = db::connect().await.expect("DB connect failed");
 
     let cors = CorsLayer::new()
-        .allow_origin(Any) // ⚠️ use `Any` for development only
+        .allow_origin(Any)
         .allow_methods(Any)
         .allow_headers(Any);
 

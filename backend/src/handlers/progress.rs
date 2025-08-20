@@ -16,7 +16,6 @@ pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<LessonCompleteRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    println!("COMPLETE LESSON {:?}", payload);
     sqlx::query(
         r#"
         INSERT INTO lesson_completion (learner_id, lesson_id)
@@ -45,8 +44,6 @@ pub async fn complete_module(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<ModuleCompleteRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    println!("payload: {:?}", payload);
-    // Start a transaction
     let mut tx = pool.begin().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -54,7 +51,6 @@ pub async fn complete_module(
         )
     })?;
 
-    // Count all lessons in the module
     let total_lessons: i64 =
         sqlx::query_scalar(r#"SELECT COUNT(*) FROM lesson WHERE module_id = $1"#)
             .bind(&payload.module_id)
@@ -66,8 +62,7 @@ pub async fn complete_module(
                     format!("Failed to count lessons: {}", e),
                 )
             })?;
-    println!("total lessons: {}", total_lessons);
-    // Count completed lessons by the learner
+
     let completed_lessons: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*) 
@@ -87,8 +82,6 @@ pub async fn complete_module(
         )
     })?;
 
-    println!("completed lessons: {}", completed_lessons);
-
     if total_lessons == 0 || completed_lessons < total_lessons {
         return Err((
             StatusCode::BAD_REQUEST,
@@ -96,7 +89,6 @@ pub async fn complete_module(
         ));
     }
 
-    // Mark module as completed
     sqlx::query(
         r#"
         INSERT INTO module_completion (learner_id, module_id)
@@ -115,7 +107,6 @@ pub async fn complete_module(
         )
     })?;
 
-    // Check if all modules in the course are completed
     let total_modules: i64 =
         sqlx::query_scalar(r#"SELECT COUNT(*) FROM module WHERE course_id = $1"#)
             .bind(&payload.course_id)
@@ -127,7 +118,6 @@ pub async fn complete_module(
                     format!("Failed to count modules: {}", e),
                 )
             })?;
-    println!("total modules: {}", total_modules);
 
     let completed_modules: i64 = sqlx::query_scalar(
         r#"
@@ -148,7 +138,6 @@ pub async fn complete_module(
         )
     })?;
 
-    println!("completed modules: {}", completed_modules);
     let all_modules_completed = total_modules > 0 && (completed_modules == total_modules);
 
     tx.commit().await.map_err(|e| {
@@ -169,10 +158,8 @@ pub async fn complete_module(
 
 pub async fn complete_course(
     State(pool): State<Pool<Postgres>>,
-    Json(payload): Json<CourseCompleteRequest>, // { course_id, learner_id }
+    Json(payload): Json<CourseCompleteRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    println!("Complete course payload: {:?}", payload);
-    // Check if all modules are completed
     let total_modules: i64 = sqlx::query_scalar("SELECT COUNT(*) FROM module WHERE course_id = $1")
         .bind(&payload.course_id)
         .fetch_one(&pool)
@@ -209,7 +196,6 @@ pub async fn complete_course(
         ));
     }
 
-    // Mark course as completed
     sqlx::query(
         "INSERT INTO course_completion (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",
     )
@@ -236,7 +222,6 @@ pub async fn complete_quiz(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<CompleteQuizPayload>,
 ) -> Result<StatusCode, (StatusCode, String)> {
-    println!("COMPLETE QUIZ");
     sqlx::query(
         r#"
         INSERT INTO quiz_completion (quiz_id, learner_id, score, total_questions)
@@ -299,11 +284,9 @@ pub async fn get_course_progress(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseProgressQuery>,
 ) -> Result<Json<CourseProgressResponse>, (StatusCode, String)> {
-    print!("GET COURSE PROGRESS {:?}", params);
     let course_id = params.course_id;
     let learner_id = &params.learner_id;
 
-    // 1. Get all lesson IDs in course
     let total_lessons: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -317,7 +300,6 @@ pub async fn get_course_progress(
     .await
     .map_err(internal_error)?;
 
-    // 2. Get completed lessons for learner
     let completed_lesson_ids: Vec<i64> = sqlx::query_scalar(
         r#"
         SELECT l.id
@@ -333,7 +315,6 @@ pub async fn get_course_progress(
     .await
     .map_err(internal_error)?;
 
-    // 3. Get completed quiz IDs
     let completed_quiz_ids: Vec<i64> = sqlx::query_scalar(
         r#"
         SELECT q.id
@@ -349,7 +330,6 @@ pub async fn get_course_progress(
     .await
     .map_err(internal_error)?;
 
-    // 4. Get completed module IDs
     let completed_module_ids: Vec<i64> = sqlx::query_scalar(
         r#"
         SELECT module_id
@@ -366,7 +346,6 @@ pub async fn get_course_progress(
     .await
     .map_err(internal_error)?;
 
-    // 5. Get total modules in course
     let total_modules: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -379,7 +358,6 @@ pub async fn get_course_progress(
     .await
     .map_err(internal_error)?;
 
-    // 6. Calculate progress
     let lesson_progress = if total_lessons > 0 {
         completed_lesson_ids.len() as f32 / total_lessons as f32
     } else {
@@ -392,10 +370,8 @@ pub async fn get_course_progress(
         0.0
     };
 
-    // You can weigh lessons and modules however you like; here's a simple average:
     let progress_percent = ((lesson_progress + module_progress) / 2.0) * 100.0;
 
-    // Determine course completion
     let course_completed = completed_module_ids.len() as i64 == total_modules;
 
     Ok(Json(CourseProgressResponse {
@@ -414,7 +390,6 @@ pub async fn get_course_progress_percentage(
     let course_id = params.course_id;
     let learner_id = &params.learner_id;
 
-    // Total lessons
     let total_lessons: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -428,7 +403,6 @@ pub async fn get_course_progress_percentage(
     .await
     .map_err(internal_error)?;
 
-    // Completed lessons
     let completed_lessons: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -444,7 +418,6 @@ pub async fn get_course_progress_percentage(
     .await
     .map_err(internal_error)?;
 
-    // Total modules
     let total_modules: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -457,7 +430,6 @@ pub async fn get_course_progress_percentage(
     .await
     .map_err(internal_error)?;
 
-    // Completed modules
     let completed_modules: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -472,7 +444,6 @@ pub async fn get_course_progress_percentage(
     .await
     .map_err(internal_error)?;
 
-    // Calculate percentages
     let lesson_progress = if total_lessons > 0 {
         completed_lessons as f32 / total_lessons as f32
     } else {
@@ -485,10 +456,8 @@ pub async fn get_course_progress_percentage(
         0.0
     };
 
-    // Weighted average (you can change this logic)
     let raw_progress = ((lesson_progress + module_progress) / 2.0) * 100.0;
 
-    // Clamp to [0, 100] and convert to u8
     let progress_percent: u8 = raw_progress.clamp(0.0, 100.0) as u8;
 
     Ok(Json(CourseProgressPercentage { progress_percent }))
@@ -503,7 +472,7 @@ fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, String) {
 
 pub async fn get_all_course_progress(
     State(pool): State<Pool<Postgres>>,
-    Query(params): Query<LearnerQuery>, // contains learner_id
+    Query(params): Query<LearnerQuery>,
 ) -> Result<Json<Vec<CourseProgressSummary>>, (StatusCode, String)> {
     let learner_id = &params.learner_id;
 
@@ -589,7 +558,6 @@ pub async fn get_all_course_progress(
         }
     }
 
-    // Now compute progress for each course
     for summary in summaries.values_mut() {
         let lesson_total = total_lessons
             .get(&summary.course_id)

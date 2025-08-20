@@ -9,7 +9,10 @@ use sqlx::{Pool, Postgres, Row, Transaction};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, Course, CourseCreatorResponse, CoursePreview, CourseQuery, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, LearnerId, Lesson, Module, NumCompletedResponse, Question, Quiz, UserCoursesResponse, UserQuery
+    AnswerOption, AnswerOptionRow, Course, CourseCreatorResponse, CoursePreview, CourseQuery,
+    CourseRow, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, LearnerId,
+    Lesson, LessonRow, Module, ModuleRow, NumCompletedResponse, Question, QuestionRow, Quiz,
+    QuizRow, UserCoursesResponse, UserQuery,
 };
 
 pub async fn create_course(
@@ -23,7 +26,6 @@ pub async fn create_course(
         )
     })?;
 
-    // Ensure creator exists
     sqlx::query("INSERT INTO creator (id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind(&payload.creator_id)
         .execute(&mut *tx)
@@ -125,7 +127,7 @@ pub async fn create_course(
     ))
 }
 
-pub async fn join_course(
+pub async fn enroll(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<JoinCourseRequest>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
@@ -136,17 +138,13 @@ pub async fn join_course(
         )
     })?;
 
-    println!("payload: {:#?}", payload);
-
-    // Ensure learner exists
     sqlx::query("INSERT INTO learner (id) VALUES ($1) ON CONFLICT DO NOTHING")
         .bind(&payload.learner_id)
         .execute(&mut *tx)
         .await
         .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
 
-    // Insert enrollment
-    let result = sqlx::query(
+    sqlx::query(
         "INSERT INTO learner_course_enrollment (learner_id, course_id) VALUES ($1, $2) ON CONFLICT DO NOTHING",).bind(&payload.learner_id).bind(&payload.course_id)
     .execute(&mut *tx)
     .await
@@ -168,7 +166,6 @@ pub async fn join_course(
 pub async fn get_top_courses(
     State(pool): State<Pool<Postgres>>,
 ) -> Result<Json<Vec<CoursePreview>>, (StatusCode, String)> {
-    // SQL query: get top 5 courses by number of enrollments
     let rows = sqlx::query(
         r#"
         SELECT
@@ -246,9 +243,6 @@ pub async fn get_num_completed(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
-    println!("params {:?}", params);
-
-    // Count how many learners have completed this course
     let result: NumCompletedResponse = sqlx::query_as::<_, NumCompletedResponse>(
         r#"
         SELECT COUNT(*)::bigint AS num_completed
@@ -266,58 +260,7 @@ pub async fn get_num_completed(
         )
     })?;
 
-    println!("Result: {:?}", result);
-
     Ok(Json(result))
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct CourseRow {
-    id: i64,
-    title: String,
-    description: String,
-    creator_id: String,
-    num_learners: i32,
-    num_completed: i32,
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct ModuleRow {
-    id: i64,
-    course_id: i64,
-    title: String,
-    position: i32,
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct LessonRow {
-    id: i64,
-    module_id: i64,
-    title: String,
-    content: String,
-    video_url: Option<String>,
-    position: i32,
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct QuizRow {
-    id: i64,
-    module_id: i64,
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct QuestionRow {
-    id: i64,
-    quiz_id: i64,
-    question_text: String,
-}
-
-#[derive(Debug, sqlx::FromRow)]
-struct AnswerOptionRow {
-    id: i64,
-    question_id: i64,
-    answer_text: String,
-    is_correct: bool,
 }
 
 pub async fn get_course(
@@ -416,7 +359,6 @@ pub async fn get_course(
         )
     })?;
 
-    // Group answers by question_id
     let mut answers_by_question: HashMap<i64, Vec<AnswerOption>> = HashMap::new();
     for a in answer_rows {
         let answer = AnswerOption {
@@ -431,7 +373,6 @@ pub async fn get_course(
             .push(answer);
     }
 
-    // Group questions by quiz_id
     let mut questions_by_quiz: HashMap<i64, Vec<Question>> = HashMap::new();
     for q in question_rows {
         let question = Question {
@@ -446,7 +387,6 @@ pub async fn get_course(
             .push(question);
     }
 
-    // Map quizzes by module_id
     let mut quiz_by_module: HashMap<i64, Quiz> = HashMap::new();
     for q in quiz_rows {
         let quiz: Quiz = Quiz {
@@ -457,7 +397,6 @@ pub async fn get_course(
         quiz_by_module.insert(q.module_id, quiz);
     }
 
-    // Group lessons by module_id
     let mut lessons_by_module: HashMap<i64, Vec<Lesson>> = HashMap::new();
     for l in lesson_rows {
         let lesson = Lesson {
@@ -474,7 +413,6 @@ pub async fn get_course(
             .push(lesson);
     }
 
-    // Build modules from rows + grouped lessons/quizzes
     let modules: Vec<Module> = module_rows
         .into_iter()
         .map(|m| Module {
@@ -487,7 +425,6 @@ pub async fn get_course(
         })
         .collect();
 
-    // Assemble final Course
     let course = Course {
         id: course_row.id,
         title: course_row.title,
@@ -500,8 +437,6 @@ pub async fn get_course(
 
     Ok((StatusCode::OK, Json(course)))
 }
-
-// get course_creator
 
 pub async fn get_course_creator(
     State(pool): State<Pool<Postgres>>,
@@ -516,7 +451,6 @@ pub async fn get_course_creator(
         "#,
     )
     .bind(&params.course_id)
-    // .bind(2)
     .fetch_optional(&pool)
     .await
     .map_err(|e| {
@@ -525,8 +459,6 @@ pub async fn get_course_creator(
             format!("Database error: {}", e),
         )
     })?;
-
-    println!("Result: {:?}", result);
 
     match result {
         Some(progress) => Ok(Json(progress)),
@@ -538,7 +470,6 @@ pub async fn get_user_courses(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<UserQuery>,
 ) -> Result<impl IntoResponse, (StatusCode, String)> {
-    // Begin transaction
     let mut tx: Transaction<'_, Postgres> = pool.begin().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -546,9 +477,6 @@ pub async fn get_user_courses(
         )
     })?;
 
-    //
-    // Fetch created courses
-    //
     let created_rows = sqlx::query(
         r#"
         SELECT 
@@ -584,9 +512,6 @@ pub async fn get_user_courses(
         })
         .collect::<Vec<_>>();
 
-    //
-    // Fetch enrolled courses
-    //
     let enrolled_rows = sqlx::query(
         r#"
         SELECT 
@@ -630,7 +555,6 @@ pub async fn get_user_courses(
         })
         .collect::<Vec<_>>();
 
-    // Commit transaction
     tx.commit().await.map_err(|e| {
         (
             StatusCode::INTERNAL_SERVER_ERROR,
@@ -638,9 +562,6 @@ pub async fn get_user_courses(
         )
     })?;
 
-    //
-    // Return combined response
-    //
     Ok((
         StatusCode::OK,
         Json(UserCoursesResponse {

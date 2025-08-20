@@ -190,3 +190,52 @@ pub struct CoursePreview {
 pub struct LearnerId {
     pub learner_id: String,
 }
+
+#[derive(Debug, FromRow)]
+pub struct CourseRow {
+    pub id: i64,
+    pub title: String,
+    pub description: String,
+    pub creator_id: String,
+    pub num_learners: i32,
+    pub num_completed: i32,
+}
+
+#[derive(Debug, FromRow)]
+pub struct ModuleRow {
+    pub id: i64,
+    pub course_id: i64,
+    pub title: String,
+    pub position: i32,
+}
+
+#[derive(Debug, FromRow)]
+pub struct LessonRow {
+    pub id: i64,
+    pub module_id: i64,
+    pub title: String,
+    pub content: String,
+    pub video_url: Option<String>,
+    pub position: i32,
+}
+
+#[derive(Debug, FromRow)]
+pub struct QuizRow {
+    pub id: i64,
+    pub module_id: i64,
+}
+
+#[derive(Debug, FromRow)]
+pub struct QuestionRow {
+    pub id: i64,
+    pub quiz_id: i64,
+    pub question_text: String,
+}
+
+#[derive(Debug, FromRow)]
+pub struct AnswerOptionRow {
+    pub id: i64,
+    pub question_id: i64,
+    pub answer_text: String,
+    pub is_correct: bool,
+}
