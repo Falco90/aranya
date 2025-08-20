@@ -8,7 +8,9 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
 use crate::models::progress::{
-    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary, LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest
+    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest,
+    CourseProgressPercentage, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary,
+    LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest,
 };
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
@@ -403,6 +405,93 @@ pub async fn get_course_progress(
         progress_percent,
         course_completed,
     }))
+}
+
+pub async fn get_course_progress_percentage(
+    State(pool): State<Pool<Postgres>>,
+    Query(params): Query<CourseProgressQuery>,
+) -> Result<Json<CourseProgressPercentage>, (StatusCode, String)> {
+    let course_id = params.course_id;
+    let learner_id = &params.learner_id;
+
+    // Total lessons
+    let total_lessons: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM lesson l
+        JOIN module m ON l.module_id = m.id
+        WHERE m.course_id = $1
+        "#,
+    )
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // Completed lessons
+    let completed_lessons: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM lesson_completion lc
+        JOIN lesson l ON lc.lesson_id = l.id
+        JOIN module m ON l.module_id = m.id
+        WHERE lc.learner_id = $1 AND m.course_id = $2
+        "#,
+    )
+    .bind(learner_id)
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // Total modules
+    let total_modules: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM module
+        WHERE course_id = $1
+        "#,
+    )
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // Completed modules
+    let completed_modules: i64 = sqlx::query_scalar(
+        r#"
+        SELECT COUNT(*)
+        FROM module_completion
+        WHERE learner_id = $1
+        AND module_id IN (SELECT id FROM module WHERE course_id = $2)
+        "#,
+    )
+    .bind(learner_id)
+    .bind(course_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(internal_error)?;
+
+    // Calculate percentages
+    let lesson_progress = if total_lessons > 0 {
+        completed_lessons as f32 / total_lessons as f32
+    } else {
+        0.0
+    };
+
+    let module_progress = if total_modules > 0 {
+        completed_modules as f32 / total_modules as f32
+    } else {
+        0.0
+    };
+
+    // Weighted average (you can change this logic)
+    let raw_progress = ((lesson_progress + module_progress) / 2.0) * 100.0;
+
+    // Clamp to [0, 100] and convert to u8
+    let progress_percent: u8 = raw_progress.clamp(0.0, 100.0) as u8;
+
+    Ok(Json(CourseProgressPercentage { progress_percent }))
 }
 
 fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, String) {

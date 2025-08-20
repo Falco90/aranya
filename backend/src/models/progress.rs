@@ -44,7 +44,7 @@ pub struct CompletedLessonsResponse {
 pub struct ModuleCompleteRequest {
     pub learner_id: String,
     pub module_id: i64,
-    pub course_id: i64
+    pub course_id: i64,
 }
 
 #[derive(Debug, Deserialize)]
@@ -79,4 +79,10 @@ pub struct CourseProgressSummary {
 #[serde(rename_all = "camelCase")]
 pub struct LearnerQuery {
     pub learner_id: String,
+}
+
+#[derive(Debug, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CourseProgressPercentage {
+    pub progress_percent: u8,
 }
