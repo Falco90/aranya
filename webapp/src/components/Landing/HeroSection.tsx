@@ -1,5 +1,8 @@
+"use client";
+
 import React from 'react';
 import Link from "next/link"
+import { useAccount } from "wagmi"
 import { BookOpenIcon, PlusIcon } from 'lucide-react';
 interface HeroSectionProps {
   isLoggedIn: boolean;
@@ -9,6 +12,7 @@ const HeroSection: React.FC<HeroSectionProps> = ({
   isLoggedIn,
   onLogin
 }) => {
+  const { isConnected, address } = useAccount();
   return <div className="bg-gradient-to-br from-amber-50 to-stone-100 py-16 sm:py-24">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="lg:grid lg:grid-cols-2 lg:gap-8 items-center">
@@ -23,8 +27,8 @@ const HeroSection: React.FC<HeroSectionProps> = ({
               knowledge with our growing library.
             </p>
             <div className="mt-10 flex gap-4">
-              {isLoggedIn ? <>
-                  <Link href="/builder" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
+              {isConnected ? <>
+                  <Link href="/course-builder" className="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-amber-700 hover:bg-amber-800 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-amber-500">
                     <PlusIcon className="h-5 w-5 mr-2" />
                     Create a Course
                   </Link>
