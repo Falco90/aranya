@@ -3,33 +3,21 @@ import {
     submitAttestationRequest,
     retrieveDataAndProofBaseWithRetry,
 } from "../utils/fdc";
-import { ethers, AbiCoder } from 'ethers';
 import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
-
 import { decodeAbiParameters } from "viem";
-
-const provider = new ethers.JsonRpcProvider(process.env.COSTON2_RPC_URL);
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
 const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-learners-by-course";
 const postProcessJq = `{learnerIds : map(.learnerId)}`;
 const httpMethod = "GET";
-// Defaults to "Content-Type": "application/json"
 const headers = "{}";
-
 const body = "{}";
 const abiSignature = `{"components": [{"internalType": "string[]", "name": "learnerIds", "type": "string[]"}],"name": "task","type": "tuple"}`;
 
-// Configuration constants
 const attestationTypeBase = "Web2Json";
 const sourceIdBase = "PublicWeb2";
 const verifierUrlBase = WEB2JSON_VERIFIER_URL_TESTNET;
-
-type ResponseData = {
-    message: string
-}
 
 async function prepareAttestationRequest(apiUrl: string, postProcessJq: string, queryParams: string, abiSignature: string) {
     const requestBody = {
@@ -59,7 +47,6 @@ export async function POST(request: Request) {
     const queryParams = `{"courseId":"${courseId}"}`;
 
     const data = await prepareAttestationRequest(apiUrl, postProcessJq, queryParams, abiSignature);
-    console.log("data: ", data);
 
     const abiEncodedRequest = data.abiEncodedRequest;
     const roundId = await submitAttestationRequest(abiEncodedRequest);
@@ -80,7 +67,6 @@ export async function POST(request: Request) {
         ],
         proof.response_hex as `0x${string}`
     );
-    console.log("Decoded:", decoded);
 
     const decodedResponse = decoded[0];
 

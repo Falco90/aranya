@@ -7,17 +7,14 @@ import {
     getRelay,
     getFdcVerification,
 } from "./getters";
-
-// ABI imports
 import FdcRequestFeeConfigurationsAbi from "../../abis/fdc/IFdcRequestFeeConfigurations.json";
 
 const RPC_URL = process.env.COSTON2_RPC_URL!;
-const NETWORK_NAME = process.env.NETWORK_NAME || "sepolia"; // fallback
-
+const NETWORK_NAME = process.env.NETWORK_NAME!;
 const provider = new ethers.JsonRpcProvider(RPC_URL);
 
 export async function getFdcRequestFee(abiEncodedRequest: string) {
-    console.log("endoed request: ", abiEncodedRequest);
+    console.log("encoded request: ", abiEncodedRequest);
     const address = await getContractAddressByName("FdcRequestFeeConfigurations");
     const contract = new ethers.Contract(address, FdcRequestFeeConfigurationsAbi.abi, provider);
     return await contract.getRequestFee(abiEncodedRequest);
@@ -30,10 +27,8 @@ export async function prepareAttestationRequestBase(
     sourceIdBase: string,
     requestBody: any
 ) {
-    console.log("Url:", url, "\n");
     const attestationType = toUtf8HexString(attestationTypeBase);
     const sourceId = toUtf8HexString(sourceIdBase);
-
     const request = { attestationType, sourceId, requestBody };
 
     const response = await fetch(url, {
@@ -71,8 +66,6 @@ export async function calculateRoundId(transaction: any) {
     return roundId;
 }
 
-
-
 export async function submitAttestationRequest(abiEncodedRequest: string) {
     const fdcHub = await getFdcHub();
 
@@ -93,7 +86,6 @@ export async function submitAttestationRequest(abiEncodedRequest: string) {
     );
     return roundId;
 }
-
 
 export async function retrieveDataAndProofBase(url: string, abiEncodedRequest: string, roundId: number) {
     console.log("Waiting for the round to finalize...");
