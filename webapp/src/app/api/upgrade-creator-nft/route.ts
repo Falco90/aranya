@@ -13,7 +13,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
-const apiUrl = "https://11f9d843c7fd.ngrok-free.app/get-num-completed";
+const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-num-completed";
 const postProcessJq = `{numCompleted: .numCompleted}`;
 const httpMethod = "GET";
 // Defaults to "Content-Type": "application/json"

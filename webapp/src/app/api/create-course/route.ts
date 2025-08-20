@@ -6,7 +6,6 @@ import {
 import { ethers, AbiCoder } from 'ethers';
 import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
 
-import ICourseManager from "../../abis/aranya/ICourseManager.json";
 import { decodeAbiParameters } from "viem";
 
 const provider = new ethers.JsonRpcProvider(process.env.COSTON2_RPC_URL);
@@ -14,7 +13,7 @@ const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
 
-const apiUrl = "https://736d5ff6030c.ngrok-free.app/get-course-creator";
+const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-course-creator";
 const postProcessJq = `{creatorId: .creatorId}`;
 const httpMethod = "GET";
 // Defaults to "Content-Type": "application/json"
