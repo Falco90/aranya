@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Flare dApp",
-  description: "A Flare Testnet dApp using RainbowKit",
+  title: "Aranya",
+  description: "A course platform where learners and teachers grow",
 };
 
 export default function RootLayout({

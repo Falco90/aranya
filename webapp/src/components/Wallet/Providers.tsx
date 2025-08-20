@@ -13,15 +13,13 @@ import {
   QueryClient,
 } from '@tanstack/react-query';
 
-// Create wagmi + rainbowkit config
 export const config = getDefaultConfig({
   appName: 'My RainbowKit App',
-  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID!, // WalletConnect Cloud Project ID
+  projectId: process.env.NEXT_PUBLIC_WC_PROJECT_ID!,
   chains: [flareTestnet],
-  ssr: true, // Enable SSR mode
+  ssr: true
 });
 
-// Create QueryClient once for react-query
 const queryClient = new QueryClient();
 
 export default function Providers({ children }: { children: React.ReactNode }) {
