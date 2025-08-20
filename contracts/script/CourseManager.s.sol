@@ -35,11 +35,11 @@ contract DeployContract is Script {
             creatorAddress,
             learnerAddress,
             [
-                "ipfs://bafkreidlkrxrfkutganrrkmtwpverbgw7y4g57dsnhm5vwjfemr2vo46ba",
-                "ipfs://bafkreiet6z4bcbyxcxnvb6y7esb3vr7juysdo6emqco6ma522iqg53rwfu",
-                "ipfs://bafkreift6et2dm4bdx5oenfpfqa7vgowoiovwtmot5bma4vjolzwqw5sce",
-                "ipfs://bafkreidqkfqyy5l6vlmbp3nlyzjcmrrf6xvbzwc62pp2snbiynkr3zre3i",
-                "ipfs://bafkreigdd2znfa3qiy3dbnapcdpqerrpoqp4xfk3tvwlxpcjw7kwukwvzq"
+                "ipfs://bafkreifwa3ccs3lwy3wdtqrtmsst6vbk7k6q4d5wpi3oy2ssy7ewn5w3ci",
+                "ipfs://bafkreierrs53ikuicavcuxmnjjwnm7nsy2lvv42n6pci76bn4duremimjq",
+                "ipfs://bafkreif3zsgtueqw2i77m6vqozloe67rksahgqmqmdrwyigfcypywlmsda",
+                "ipfs://bafkreiamyx5g4tjwl5i7jyur4fxgq4kyrhzgx6tg2l3nfuo7nj7oeftgw4",
+                "ipfs://bafkreiedfgcpa2lptppajs3midqacaivoozlf2bugc6xasr2zdllv4jcwi"
             ],
             [
                 "ipfs://bafkreibut5xzzjfi35bn7drkia5zmagjjnubuxvavyejmvdrob7ptsdnla",
