@@ -32,9 +32,7 @@ contract LearnerNFT is
     mapping(uint256 => bool) public tokenExists;
 
     struct DataTransportObject {
-        uint256 course_id;
-        string learner_id;
-        uint256 progress_percent;
+        uint8 progress_percent;
     }
 
     event LearnerNFTMinted(address indexed learner, uint256 indexed tokenId);
