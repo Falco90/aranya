@@ -173,3 +173,13 @@ pub struct UserCoursesResponse {
     pub created_courses: Vec<CreatedCourse>,
     pub enrolled_courses: Vec<EnrolledCourse>,
 }
+
+#[derive(Debug, Serialize, FromRow)]
+#[serde(rename_all = "camelCase")]
+pub struct CoursePreview {
+    pub title: String,
+    pub creator: String,
+    pub num_enrollments: i64,
+    pub num_completions: i64,
+    pub num_modules: i64,
+}
