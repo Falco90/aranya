@@ -196,7 +196,7 @@ pub async fn get_top_courses(
             WHERE m.course_id = c.id
         ) AS modules ON true
         ORDER BY num_enrollments DESC
-        LIMIT 5
+        LIMIT 3
         "#,
     )
     .fetch_all(&pool)
