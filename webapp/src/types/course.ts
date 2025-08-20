@@ -142,3 +142,12 @@ export type NFTData = {
     }[];
   }
 }
+
+export type CoursePreview = {
+  courseId: number;
+  title: string;
+  creatorId: string;
+  numEnrollments: number;
+  numCompletions: number;
+  numModules: number;
+}
