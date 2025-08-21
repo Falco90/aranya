@@ -86,7 +86,7 @@ export default function UpgradeNFTModal({
                 const res = await fetch("/api/upgrade-creator-nft", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(courseId),
+                    body: JSON.stringify({ courseId }),
                 });
 
                 if (!res.ok) {

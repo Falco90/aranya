@@ -10,6 +10,7 @@ import EmptyState from "./EmptyState"
 import { config } from "../Wallet/Providers"
 import { erc721Abi } from "viem"
 import ICourseManager from "../../app/abis/aranya/ICourseManager.json"
+import ILearnerNFT from "../../app/abis/aranya/ILearnerNFT.json"
 import { BookOpenIcon, LeafIcon, PenToolIcon } from "lucide-react"
 import { ipfsToHttp } from "../utils/utils"
 import { CreatorCourseSummary, LearnerCourseSummary, NFTData } from "@/types/course"
@@ -52,7 +53,7 @@ export default function CoursesList() {
                 address: nftAddr as `0x${string}`,
                 abi: erc721Abi,
                 functionName: "tokenURI",
-                args: [BigInt(0)],
+                args: [BigInt(1)],
               })
 
               const metadata = await fetch(ipfsToHttp(tokenURI)).then((r) => r.json())
@@ -83,11 +84,18 @@ export default function CoursesList() {
               })
 
               if (nftAddr !== "0x0000000000000000000000000000000000000000") {
+                const tokenId = await readContract(config, {
+                  address: nftAddr as `0x${string}`,
+                  abi: ILearnerNFT.abi,
+                  functionName: "learnerTokenIds",
+                  args: [address],
+                }) as number;
+
                 const tokenURI = await readContract(config, {
                   address: nftAddr as `0x${string}`,
                   abi: erc721Abi,
                   functionName: "tokenURI",
-                  args: [BigInt(1)],
+                  args: [BigInt(tokenId)]
                 })
 
                 const metadata = await fetch(ipfsToHttp(tokenURI)).then((r) => r.json())
@@ -129,8 +137,8 @@ export default function CoursesList() {
                 <button
                   onClick={() => setActiveView("learner")}
                   className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeView === "learner"
-                      ? "bg-white shadow text-emerald-700"
-                      : "text-stone-600 hover:text-emerald-700"
+                    ? "bg-white shadow text-emerald-700"
+                    : "text-stone-600 hover:text-emerald-700"
                     }`}
                 >
                   <div className="flex items-center">
@@ -141,8 +149,8 @@ export default function CoursesList() {
                 <button
                   onClick={() => setActiveView("creator")}
                   className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeView === "creator"
-                      ? "bg-white shadow text-amber-700"
-                      : "text-stone-600 hover:text-amber-700"
+                    ? "bg-white shadow text-amber-700"
+                    : "text-stone-600 hover:text-amber-700"
                     }`}
                 >
                   <div className="flex items-center">
