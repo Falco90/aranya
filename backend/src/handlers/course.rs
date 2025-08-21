@@ -163,6 +163,57 @@ pub async fn enroll(
     ))
 }
 
+pub async fn get_all_courses(
+    State(pool): State<Pool<Postgres>>,
+) -> Result<Json<Vec<CoursePreview>>, (StatusCode, String)> {
+    let rows = sqlx::query(
+        r#"
+        SELECT
+            c.id,
+            c.title,
+            cr.id AS creator,
+            COALESCE(enrollments.count, 0) AS num_enrollments,
+            COALESCE(completions.count, 0) AS num_completions,
+            COALESCE(modules.count, 0) AS num_modules
+        FROM course c
+        JOIN creator cr ON cr.id = c.creator_id
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS count
+            FROM learner_course_enrollment lce
+            WHERE lce.course_id = c.id
+        ) AS enrollments ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS count
+            FROM course_completion cc
+            WHERE cc.course_id = c.id
+        ) AS completions ON true
+        LEFT JOIN LATERAL (
+            SELECT COUNT(*) AS count
+            FROM module m
+            WHERE m.course_id = c.id
+        ) AS modules ON true
+        ORDER BY num_enrollments DESC
+        "#,
+    )
+    .fetch_all(&pool)
+    .await
+    .map_err(|e| (StatusCode::INTERNAL_SERVER_ERROR, e.to_string()))?;
+
+    let previews: Vec<CoursePreview> = rows
+        .into_iter()
+        .map(|row| CoursePreview {
+            course_id: row.try_get("id").unwrap(),
+            title: row.try_get("title").unwrap(),
+            creator_id: row.try_get("creator").unwrap(),
+            num_enrollments: row.try_get("num_enrollments").unwrap(),
+            num_completions: row.try_get("num_completions").unwrap(),
+            num_modules: row.try_get("num_modules").unwrap(),
+        })
+        .collect::<Vec<_>>();
+
+    Ok(Json(previews))
+}
+
 pub async fn get_top_courses(
     State(pool): State<Pool<Postgres>>,
 ) -> Result<Json<Vec<CoursePreview>>, (StatusCode, String)> {

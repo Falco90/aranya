@@ -5,7 +5,7 @@ use axum::{
 use sqlx::Pool;
 use sqlx::Postgres;
 
-use crate::handlers::course::{create_course, get_course, get_num_completed, enroll, get_course_creator, get_user_courses, get_learners_by_course, get_top_courses};
+use crate::handlers::course::{create_course, get_course, get_num_completed, enroll, get_course_creator, get_user_courses, get_learners_by_course, get_top_courses, get_all_courses};
 
 pub fn course_routes(pool: Pool<Postgres>) -> Router {
     Router::new()
@@ -16,6 +16,7 @@ pub fn course_routes(pool: Pool<Postgres>) -> Router {
         .route("/get-course-creator", get(get_course_creator))
         .route("/get-user-courses", get(get_user_courses))
         .route("/get-top-courses", get(get_top_courses))
+        .route("/get-all-courses", get(get_all_courses))
         .route("/get-learners-by-course", get(get_learners_by_course))
         .with_state(pool)
 }
