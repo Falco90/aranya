@@ -8,10 +8,35 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
 use crate::models::progress::{
-    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest,
-    CourseProgressPercentage, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary,
-    LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest,
+    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest, CourseProgressPercentage, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary, EnrollmentQuery, LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest
 };
+
+pub async fn is_enrolled(
+    State(pool): State<Pool<Postgres>>,
+    Query(query): Query<EnrollmentQuery>,
+) -> Result<Json<bool>, (StatusCode, String)> {
+    let exists = sqlx::query_scalar::<_, bool>(
+        r#"
+        SELECT EXISTS(
+            SELECT 1
+            FROM learner_course_enrollment
+            WHERE course_id = $1 AND learner_id = $2
+        )
+        "#,
+    )
+    .bind(query.course_id)
+    .bind(query.learner_id)
+    .fetch_one(&pool)
+    .await
+    .map_err(|err| {
+        (
+            StatusCode::INTERNAL_SERVER_ERROR,
+            format!("Database query failed: {}", err),
+        )
+    })?;
+
+    Ok(Json(exists))
+}
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<LessonCompleteRequest>,
