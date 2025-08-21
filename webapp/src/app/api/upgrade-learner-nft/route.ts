@@ -8,12 +8,12 @@ import { decodeAbiParameters } from "viem";
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
-const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-course-progress-percentage";
-const postProcessJq = `{progressPercent: .progressPercent}`;
+const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/get-course-progress-percentage";
+const postProcessJq = `{courseId: .courseId, learnerId: .learnerId, progressPercent: .progressPercent}`;
 const httpMethod = "GET";
 const headers = "{}";
 const body = "{}";
-const abiSignature = `{"components": [{"internalType": "uint8", "name": "progressPercent", "type": "uint8"}],"name": "task","type": "tuple"}`;
+const abiSignature = `{"components": [{"internalType": "uint256", "name": "courseId", "type": "uint256"}, {"internalType": "address", "name": "learnerId", "type": "address"}, {"internalType": "uint8", "name": "progressPercent", "type": "uint8"}],"name": "task","type": "tuple"}`;
 
 const attestationTypeBase = "Web2Json";
 const sourceIdBase = "PublicWeb2";
