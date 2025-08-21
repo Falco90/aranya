@@ -10,6 +10,7 @@ type CourseViewerContextType = {
     activeQuiz: number | null
     setActiveQuiz: React.Dispatch<React.SetStateAction<number | null>>
     // Progress tracking
+    isEnrolled: boolean
     progress: Progress
     markLessonComplete: (lessonId: number) => void
     markQuizComplete: (quizId: number, result: QuizResult) => void
@@ -27,7 +28,8 @@ export const CourseViewerProvider: React.FC<{
     children: ReactNode,
     course: Course,
     courseProgress: CourseProgress,
-}> = ({ children, course, courseProgress }) => {
+    isEnrolled: boolean
+}> = ({ children, course, courseProgress, isEnrolled }) => {
     const [activeModule, setActiveModule] = useState<number | null>(null)
     const [activeLesson, setActiveLesson] = useState<number | null>(null)
     const [activeQuiz, setActiveQuiz] = useState<number | null>(null)
@@ -101,6 +103,7 @@ export const CourseViewerProvider: React.FC<{
                 activeQuiz,
                 setActiveQuiz,
                 progress,
+                isEnrolled,
                 markLessonComplete,
                 markQuizComplete,
                 isLessonCompleted,

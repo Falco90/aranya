@@ -8,12 +8,12 @@ import { decodeAbiParameters } from "viem";
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
-const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-learners-by-course";
-const postProcessJq = `{learnerIds : map(.learnerId)}`;
+const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/is-enrolled";
+const postProcessJq = `{courseId: .courseId, learnerId: .learnerId, isEnrolled: .isEnrolled}`;
 const httpMethod = "GET";
 const headers = "{}";
 const body = "{}";
-const abiSignature = `{"components": [{"internalType": "string[]", "name": "learnerIds", "type": "string[]"}],"name": "task","type": "tuple"}`;
+const abiSignature = `{"components": [{"internalType": "uint256", "name": "courseId", "type": "uint256"},{"internalType": "address", "name": "learnerId", "type": "address"},{"internalType": "bool", "name": "isEnrolled", "type": "bool"}],"name": "task","type": "tuple"}`;
 
 const attestationTypeBase = "Web2Json";
 const sourceIdBase = "PublicWeb2";
@@ -42,9 +42,19 @@ async function retrieveDataAndProof(abiEncodedRequest: string, roundId: number) 
 }
 
 export async function POST(request: Request) {
-    const { courseId } = await request.json();
+    const payload = await request.json();
 
-    const queryParams = `{"courseId":"${courseId}"}`;
+    console.log("Forwarding course payload to Rust backend:");
+
+    await fetch(`http://localhost:4000/enroll`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify(payload),
+    });
+
+    const queryParams = `{"courseId":"${payload.courseId}", "learnerId":"${payload.learnerId}"}`;
 
     const data = await prepareAttestationRequest(apiUrl, postProcessJq, queryParams, abiSignature);
 

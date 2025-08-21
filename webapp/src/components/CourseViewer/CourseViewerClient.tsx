@@ -14,32 +14,61 @@ const CourseViewerClient: React.FC<Props> = ({ course }) => {
     const { address, isConnected } = useAccount();
     const [progress, setProgress] = useState<CourseProgress | null>(null);
     const [loading, setLoading] = useState(true);
+    const [isEnrolled, setIsEnrolled] = useState(false);
 
     useEffect(() => {
-        const fetchProgress = async () => {
+        const fetchEnrollmentAndProgress = async () => {
             if (!address) return;
 
             try {
-                const learnerId = address; // or wrap it as DID if you need
-                const url = new URL("http://localhost:4000/get-course-progress");
-                url.searchParams.set("courseId", String(course.id));
-                url.searchParams.set("learnerId", learnerId);
+                // 1. Check enrollment
+                const enrollUrl = new URL("http://localhost:4000/is-enrolled");
+                enrollUrl.searchParams.set("courseId", String(course.id));
+                enrollUrl.searchParams.set("learnerId", address);
 
-                const res = await fetch(url.toString());
-                if (!res.ok) throw new Error("Failed to fetch progress");
+                const enrollRes = await fetch(enrollUrl.toString());
+                if (!enrollRes.ok) throw new Error("Failed to check enrollment");
 
-                const data = await res.json();
-                setProgress(data);
+                const { enrolled } = await enrollRes.json();
+                setIsEnrolled(enrolled);
+
+                // 2. Only fetch progress if enrolled
+                if (enrolled) {
+                    const progressUrl = new URL("http://localhost:4000/get-course-progress");
+                    progressUrl.searchParams.set("courseId", String(course.id));
+                    progressUrl.searchParams.set("learnerId", address);
+
+                    const progressRes = await fetch(progressUrl.toString());
+                    if (!progressRes.ok) throw new Error("Failed to fetch progress");
+
+                    const data = await progressRes.json();
+                    setProgress(data);
+                } else {
+                    setProgress({
+                        completedLessonIds: [],
+                        completedQuizIds: [],
+                        completedModuleIds: [],
+                        progressPercent: 0,
+                        courseCompleted: false,
+                    });
+                }
             } catch (err) {
                 console.error(err);
-                setProgress({ completedLessonIds: [], completedQuizIds: [], completedModuleIds: [], progressPercent: 0, courseCompleted: false });
+                setIsEnrolled(false);
+                setProgress({
+                    completedLessonIds: [],
+                    completedQuizIds: [],
+                    completedModuleIds: [],
+                    progressPercent: 0,
+                    courseCompleted: false,
+                });
             } finally {
                 setLoading(false);
             }
         };
 
         if (isConnected) {
-            fetchProgress();
+            fetchEnrollmentAndProgress();
         }
     }, [address, isConnected, course.id]);
 
@@ -48,9 +77,9 @@ const CourseViewerClient: React.FC<Props> = ({ course }) => {
     if (loading) {
         return <div>Loading progress...</div>;
     }
-    
+
     return (
-        <CourseViewerProvider course={course} courseProgress={progress!}>
+        <CourseViewerProvider course={course} courseProgress={progress!} isEnrolled={isEnrolled} >
             <CourseViewerLayout />
         </CourseViewerProvider>
     );

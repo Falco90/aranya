@@ -5,15 +5,17 @@ import LessonContent from './LessonContent';
 import QuizContent from './QuizContent';
 import { QuizResult } from '@/types/course';
 import { useAccount } from 'wagmi';
+import EnrollModal from './EnrollModal';
 
 const CourseViewerLayout: React.FC = () => {
-  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted, isModuleCompleted, progress } = useCourseViewer();
+  const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted, isModuleCompleted, progress, isEnrolled } = useCourseViewer();
 
   const [activeModuleId, setActiveModuleId] = useState<number | null>(null);
   const [activeLessonId, setActiveLessonId] = useState<number | null>(null);
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isConnected, chainId, address } = useAccount();
+  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
   // Set initial active module and lesson
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
@@ -33,12 +35,23 @@ const CourseViewerLayout: React.FC = () => {
 
   const activeQuiz = activeModule?.quiz && activeModule.quiz.id === activeQuizId ? activeModule.quiz : null;
   const handleLessonChange = (moduleId: number, lessonId: number) => {
+
+    if (!isEnrolled && moduleId !== course.modules[0].id) {
+      alert("Enroll to unlock this module!");
+      return;
+    }
     setActiveModuleId(moduleId);
     setActiveLessonId(lessonId);
     setActiveQuizId(null);
   };
 
   const handleQuizSelect = (moduleId: number, quizId: number) => {
+
+    if (!isEnrolled && moduleId !== course.modules[0].id) {
+      alert("Enroll to unlock this quiz!");
+      return;
+    }
+
     setActiveModuleId(moduleId);
     setActiveLessonId(null);
     setActiveQuizId(quizId);
@@ -212,19 +225,78 @@ const CourseViewerLayout: React.FC = () => {
     }
     return null;
   };
-  return <div className="flex h-screen bg-stone-50 overflow-hidden">
-    <CourseSidebar course={course} activeModuleId={activeModuleId} activeLessonId={activeLessonId} activeQuizId={activeQuizId} onLessonSelect={handleLessonChange} onQuizSelect={handleQuizSelect} />
-    <div className="flex-1 overflow-auto">
-      {activeLesson ? <LessonContent lesson={activeLesson} module={activeModule} nextLesson={getNextLesson()} previousLesson={getPreviousLesson()} isSubmitting={isSubmitting} isLessonCompleted={isLessonCompleted} onNavigate={handleLessonChange} onComplete={handleLessonComplete} /> : activeQuiz ? (
-        <QuizContent quiz={activeQuiz} module={activeModule!} onComplete={handleQuizComplete} existingResult={getQuizResult(activeQuiz.id)} />
-      ) : <div className="flex items-center justify-center h-full">
-        <div className="text-center p-8">
-          <p className="text-stone-600">
-            Select a lesson to begin learning
-          </p>
+
+  const handleOpenSubmitModal = () => {
+    setIsSubmitModalOpen(true);
+  };
+
+  const handleCloseSubmitModal = () => {
+    setIsSubmitModalOpen(false);
+  };
+
+
+  return (
+    <div className="flex h-screen bg-stone-50 overflow-hidden">
+      {!isEnrolled ? (
+        // 🔒 Enrollment prompt if learner isn’t enrolled
+        <div className="flex-1 flex items-center justify-center">
+          <div className="p-6 text-center">
+            <p className="mb-4 text-gray-600">Want full access to this course?</p>
+            <button
+              className="px-4 py-2 bg-indigo-600 text-white rounded-xl shadow"
+              onClick={handleOpenSubmitModal}
+            >
+              Enroll Now
+            </button>
+          </div>
+          <EnrollModal
+            isOpen={isSubmitModalOpen}
+            onClose={handleCloseSubmitModal}
+            courseId={course.id}
+          />
         </div>
-      </div>}
+      ) : (
+        // ✅ Show the full course UI if enrolled
+        <>
+          <CourseSidebar
+            course={course}
+            activeModuleId={activeModuleId}
+            activeLessonId={activeLessonId}
+            activeQuizId={activeQuizId}
+            onLessonSelect={handleLessonChange}
+            onQuizSelect={handleQuizSelect}
+          />
+          <div className="flex-1 overflow-auto">
+            {activeLesson ? (
+              <LessonContent
+                lesson={activeLesson}
+                module={activeModule}
+                nextLesson={getNextLesson()}
+                previousLesson={getPreviousLesson()}
+                isSubmitting={isSubmitting}
+                isLessonCompleted={isLessonCompleted}
+                onNavigate={handleLessonChange}
+                onComplete={handleLessonComplete}
+              />
+            ) : activeQuiz ? (
+              <QuizContent
+                quiz={activeQuiz}
+                module={activeModule!}
+                onComplete={handleQuizComplete}
+                existingResult={getQuizResult(activeQuiz.id)}
+              />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <div className="text-center p-8">
+                  <p className="text-stone-600">Select a lesson to begin learning</p>
+                </div>
+              </div>
+            )}
+          </div>
+        </>
+      )}
     </div>
-  </div>;
+  );
+
 };
 export default CourseViewerLayout;
