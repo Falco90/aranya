@@ -13,7 +13,10 @@ interface ICourseManager {
         string memory courseName
     ) external;
 
-    function enroll(IWeb2Json.Proof calldata proof, uint256 courseId) external returns (uint256);
+    function enroll(
+        IWeb2Json.Proof calldata proof,
+        uint256 courseId
+    ) external returns (uint256);
 
     function getLearnerNFTAddress(
         uint256 courseId
@@ -33,6 +36,7 @@ contract CourseManager {
     string[5] public creatorMilestoneURIs;
     string[5] public learnerMilestoneURIs;
     uint16[5] public creatorMilestoneThresholds;
+    mapping(uint256 => mapping(address => bool)) public isEnrolled;
 
     struct CreateCourseDTO {
         uint256 course_id;
@@ -158,9 +162,12 @@ contract CourseManager {
         require(dto.course_id == courseId, "courseId doesn't match");
         require(dto.learner_id == msg.sender, "Sender is not learner");
         require(dto.is_enrolled, "Sender is not saved to database");
+        require(!isEnrolled[courseId][msg.sender], "Already enrolled");
 
         LearnerNFT learnerNFT = LearnerNFT(course.learnerNFT);
         uint256 tokenId = learnerNFT.mint(msg.sender);
+
+        isEnrolled[courseId][msg.sender] = true;
 
         emit LearnerEnrolled(courseId, msg.sender, tokenId);
 

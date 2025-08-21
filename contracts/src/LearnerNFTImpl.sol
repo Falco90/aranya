@@ -15,8 +15,9 @@ interface ILearnerNFT {
         uint256 tokenId,
         IWeb2Json.Proof calldata data
     ) external;
-
     function mint(address to) external returns (uint256);
+    function learnerTokenIds(address learner) external view returns (uint256);
+    function tokenMilestones(uint256 tokenId) external view returns (uint256);
 }
 
 contract LearnerNFT is
@@ -28,6 +29,7 @@ contract LearnerNFT is
     uint256 public tokenCounter;
     uint256 public courseId;
     string[5] public milestoneURIs;
+    mapping(address => uint256) public learnerTokenIds;
     mapping(uint256 => uint256) public tokenMilestones;
 
     mapping(uint256 => bool) public tokenExists;
@@ -76,12 +78,15 @@ contract LearnerNFT is
 
     function mint(address to) external returns (uint256) {
         require(msg.sender == courseManager, "Only CourseManager can mint");
+        require(learnerTokenIds[to] == 0, "Already enrolled");
+
         uint256 tokenId = ++tokenCounter;
         _safeMint(to, tokenId);
         tokenExists[tokenId] = true;
         tokenMilestones[tokenId] = 0;
         updateTokenURI(tokenId, milestoneURIs[0]);
         emit LearnerNFTMinted(msg.sender, tokenId);
+        learnerTokenIds[to] = tokenId;
         return tokenId;
     }
 

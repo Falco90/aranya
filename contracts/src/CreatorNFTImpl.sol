@@ -53,8 +53,8 @@ contract CreatorNFT is
         milestoneThresholds = _milestoneThresholds;
         currentMilestone = 0;
 
-        _safeMint(ownerAddress, 0);
-        _setTokenURI(0, milestoneURIs[0]);
+        _safeMint(ownerAddress, 1);
+        _setTokenURI(1, milestoneURIs[0]);
     }
 
     function isJsonApiProofValid(
@@ -64,7 +64,7 @@ contract CreatorNFT is
     }
 
     function updateMilestone(IWeb2Json.Proof calldata proof) external {
-        address owner = ownerOf(0);
+        address owner = ownerOf(1);
         require(owner == msg.sender, "Not token owner");
         require(isJsonApiProofValid(proof), "Invalid proof");
 
@@ -92,14 +92,14 @@ contract CreatorNFT is
         if (milestone > current) {
             currentMilestone = milestone;
 
-            _setTokenURI(0, milestoneURIs[milestone]);
+            _setTokenURI(1, milestoneURIs[milestone]);
 
             emit MilestoneUpdated(milestone);
         }
     }
 
     function updateTokenURI(string memory newTokenURI) internal {
-        _setTokenURI(0, newTokenURI);
+        _setTokenURI(1, newTokenURI);
     }
 
     function getMilestoneThresholds() public view returns (uint16[5] memory) {
