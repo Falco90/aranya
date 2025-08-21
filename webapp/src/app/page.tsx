@@ -20,15 +20,17 @@ const LandingPage: React.FC<LandingPageProps> = async ({
   const response = await fetch("http://localhost:4000/get-top-courses");
   const courses: CoursePreview[] = await response.json();
 
-  return <div className="min-h-screen flex flex-col bg-stone-50">
-    <Navbar isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
-    <main>
-      <HeroSection isLoggedIn={isLoggedIn} onLogin={onLogin} />
-      <HowItWorks />
-      <CoursePreviewSection courses={courses} />
-      <FAQSection />
-    </main>
-    <Footer />
-  </div>;
+  return (
+    <div className="min-h-screen flex flex-col bg-stone-50">
+      <Navbar isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
+      <main>
+        <HeroSection isLoggedIn={isLoggedIn} onLogin={onLogin} />
+        <HowItWorks />
+        <CoursePreviewSection courses={courses} />
+        <FAQSection />
+      </main>
+      <Footer />
+    </div>
+  )
 };
 export default LandingPage;
