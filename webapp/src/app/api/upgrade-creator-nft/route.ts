@@ -8,12 +8,12 @@ import { decodeAbiParameters } from "viem";
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
-const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-num-completed";
-const postProcessJq = `{numCompleted: .numCompleted}`;
+const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/get-num-completed";
+const postProcessJq = `{courseId: .courseId, numCompleted: .numCompleted}`;
 const httpMethod = "GET";
 const headers = "{}";
 const body = "{}";
-const abiSignature = `{"components": [{"internalType": "uint256", "name": "numCompleted", "type": "uint256"}],"name": "task","type": "tuple"}`;
+const abiSignature = `{"components": [{"internalType": "uint256", "name": "courseId", "type": "uint256"},{"internalType": "uint256", "name": "numCompleted", "type": "uint256"}],"name": "task","type": "tuple"}`;
 
 const attestationTypeBase = "Web2Json";
 const sourceIdBase = "PublicWeb2";
@@ -42,7 +42,7 @@ async function retrieveDataAndProof(abiEncodedRequest: string, roundId: number) 
 }
 
 export async function POST(request: Request) {
-    const courseId = await request.json();
+    const { courseId } = await request.json();
 
     const queryParams = `{"courseId":"${courseId}"}`;
 
