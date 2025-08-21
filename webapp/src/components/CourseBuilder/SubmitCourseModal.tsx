@@ -178,17 +178,6 @@ export default function SubmitCourseModal({
             setError(null);
             setCurrentStep("transaction");
 
-            // ---- CALL YOUR CONTRACT HERE ----
-            // Adjust args to match your CourseManager.createCourse signature.
-            // Example placeholders:
-            //   - courseId from server
-            //   - proof blob from server
-            //   - maybe additional metadata
-            //
-            // If your function is e.g.:
-            // function createCourse(uint256 courseId, bytes proof, string creatorId)
-            // then:
-            console.log(serverData);
             const args = [
                 BigInt(serverData.courseId!),
                 serverData.proof,
@@ -197,8 +186,8 @@ export default function SubmitCourseModal({
 
             const response = await writeContractAsync({
                 address: COURSE_MANAGER_ADDRESS as `0x${string}`,
-                abi: ICourseManager as any,
-                functionName: "createCourse", // <- make sure this matches your ABI
+                abi: ICourseManager.abi,
+                functionName: "createCourse",
                 args,
             });
 
