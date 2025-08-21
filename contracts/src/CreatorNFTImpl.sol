@@ -29,6 +29,7 @@ contract CreatorNFT is
     event MilestoneUpdated(uint256 newMilestone);
 
     struct DataTransportObject {
+        uint256 course_id;
         uint256 num_completed;
     }
 
@@ -71,6 +72,8 @@ contract CreatorNFT is
             proof.data.responseBody.abiEncodedData,
             (DataTransportObject)
         );
+
+        require(dto.course_id == courseId, "CourseId doesn't match");
 
         uint16[5] memory thresholds = milestoneThresholds;
         uint256 milestone = 0;

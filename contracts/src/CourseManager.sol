@@ -13,7 +13,7 @@ interface ICourseManager {
         string memory courseName
     ) external;
 
-    function enroll(uint256 courseId) external returns (uint256);
+    function enroll(IWeb2Json.Proof calldata proof, uint256 courseId) external returns (uint256);
 
     function getLearnerNFTAddress(
         uint256 courseId
@@ -34,8 +34,15 @@ contract CourseManager {
     string[5] public learnerMilestoneURIs;
     uint16[5] public creatorMilestoneThresholds;
 
-    struct DataTransportObject {
-        address creator_id;
+    struct CreateCourseDTO {
+        uint256 course_id;
+        address user_id;
+    }
+
+    struct EnrollDTO {
+        uint256 course_id;
+        address learner_id;
+        bool is_enrolled;
     }
 
     struct Course {
@@ -92,12 +99,13 @@ contract CourseManager {
 
         require(isJsonApiProofValid(proof), "Invalid proof");
 
-        DataTransportObject memory dto = abi.decode(
+        CreateCourseDTO memory dto = abi.decode(
             proof.data.responseBody.abiEncodedData,
-            (DataTransportObject)
+            (CreateCourseDTO)
         );
 
-        require(dto.creator_id == msg.sender, "Sender is not course creator");
+        require(dto.course_id == courseId, "courseId doesn't match");
+        require(dto.user_id == msg.sender, "Sender is not course creator");
 
         address creatorNFTClone = creatorNFTImplementation.clone();
         CreatorNFT(creatorNFTClone).initialize(
@@ -115,7 +123,8 @@ contract CourseManager {
             "LEARNER",
             courseId,
             learnerMilestoneURIs,
-            msg.sender
+            msg.sender,
+            address(this)
         );
 
         courses[courseId] = Course({
@@ -132,9 +141,23 @@ contract CourseManager {
         );
     }
 
-    function enroll(uint256 courseId) external returns (uint256) {
+    function enroll(
+        IWeb2Json.Proof calldata proof,
+        uint256 courseId
+    ) external returns (uint256) {
         Course memory course = courses[courseId];
         require(course.learnerNFT != address(0), "Course does not exist");
+
+        require(isJsonApiProofValid(proof), "Invalid proof");
+
+        EnrollDTO memory dto = abi.decode(
+            proof.data.responseBody.abiEncodedData,
+            (EnrollDTO)
+        );
+
+        require(dto.course_id == courseId, "courseId doesn't match");
+        require(dto.learner_id == msg.sender, "Sender is not learner");
+        require(dto.is_enrolled, "Sender is not saved to database");
 
         LearnerNFT learnerNFT = LearnerNFT(course.learnerNFT);
         uint256 tokenId = learnerNFT.mint(msg.sender);

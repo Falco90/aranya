@@ -24,6 +24,7 @@ contract LearnerNFT is
     ERC721URIStorageUpgradeable,
     OwnableUpgradeable
 {
+    address public courseManager;
     uint256 public tokenCounter;
     uint256 public courseId;
     string[5] public milestoneURIs;
@@ -32,6 +33,8 @@ contract LearnerNFT is
     mapping(uint256 => bool) public tokenExists;
 
     struct DataTransportObject {
+        uint256 course_id;
+        address learner_id;
         uint8 progress_percent;
     }
 
@@ -52,12 +55,14 @@ contract LearnerNFT is
         string memory _symbol,
         uint256 _courseId,
         string[5] memory _milestoneURIs,
-        address ownerAddress
+        address ownerAddress,
+        address _courseManager
     ) public initializer {
         __ERC721_init(_name, _symbol);
         __ERC721URIStorage_init();
         __Ownable_init(ownerAddress);
 
+        courseManager = _courseManager;
         courseId = _courseId;
         milestoneURIs = _milestoneURIs;
         tokenCounter = 0;
@@ -70,6 +75,7 @@ contract LearnerNFT is
     }
 
     function mint(address to) external returns (uint256) {
+        require(msg.sender == courseManager, "Only CourseManager can mint");
         uint256 tokenId = ++tokenCounter;
         _safeMint(to, tokenId);
         tokenExists[tokenId] = true;
@@ -89,6 +95,12 @@ contract LearnerNFT is
         DataTransportObject memory dto = abi.decode(
             proof.data.responseBody.abiEncodedData,
             (DataTransportObject)
+        );
+
+        require(dto.course_id == courseId, "CourseId doesn't match");
+        require(
+            dto.learner_id == msg.sender,
+            "LearnerId doesn't match with sender"
         );
 
         uint256 newMilestone = dto.progress_percent / 25;
