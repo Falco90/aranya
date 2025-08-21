@@ -18,7 +18,7 @@ pub async fn is_enrolled(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<EnrollmentQuery>,
 ) -> Result<Json<EnrollmentResponse>, (StatusCode, String)> {
-    println!{"is enrolled {:?}", params};
+    println! {"is enrolled {:?}", params};
     let exists = sqlx::query_scalar::<_, bool>( r#" SELECT EXISTS( SELECT 1 FROM learner_course_enrollment WHERE course_id = $1 AND learner_id = $2 ) "#, ) .bind(&params.course_id) .bind(&params.learner_id) .fetch_one(&pool) .await .map_err(|err| { ( StatusCode::INTERNAL_SERVER_ERROR, format!("Database query failed: {}", err), ) })?;
 
     println!("is enrolled? {}", exists);
@@ -406,9 +406,6 @@ pub async fn get_course_progress_percentage(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseProgressQuery>,
 ) -> Result<Json<CourseProgressPercentage>, (StatusCode, String)> {
-    let course_id = params.course_id;
-    let learner_id = &params.learner_id;
-
     let total_lessons: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)
@@ -417,7 +414,7 @@ pub async fn get_course_progress_percentage(
         WHERE m.course_id = $1
         "#,
     )
-    .bind(course_id)
+    .bind(&params.course_id)
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
@@ -431,8 +428,8 @@ pub async fn get_course_progress_percentage(
         WHERE lc.learner_id = $1 AND m.course_id = $2
         "#,
     )
-    .bind(learner_id)
-    .bind(course_id)
+    .bind(&params.learner_id)
+    .bind(&params.course_id)
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
@@ -444,7 +441,7 @@ pub async fn get_course_progress_percentage(
         WHERE course_id = $1
         "#,
     )
-    .bind(course_id)
+    .bind(&params.course_id)
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
@@ -457,8 +454,8 @@ pub async fn get_course_progress_percentage(
         AND module_id IN (SELECT id FROM module WHERE course_id = $2)
         "#,
     )
-    .bind(learner_id)
-    .bind(course_id)
+    .bind(&params.learner_id)
+    .bind(&params.course_id)
     .fetch_one(&pool)
     .await
     .map_err(internal_error)?;
@@ -479,7 +476,11 @@ pub async fn get_course_progress_percentage(
 
     let progress_percent: u8 = raw_progress.clamp(0.0, 100.0) as u8;
 
-    Ok(Json(CourseProgressPercentage { progress_percent }))
+    Ok(Json(CourseProgressPercentage {
+        course_id: params.course_id,
+        learner_id: params.learner_id,
+        progress_percent,
+    }))
 }
 
 fn internal_error<E: std::fmt::Display>(e: E) -> (StatusCode, String) {
