@@ -86,9 +86,17 @@ pub struct CourseProgressPercentage {
     pub progress_percent: u8,
 }
 
-#[derive(Deserialize)]
+#[derive(Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
 pub struct EnrollmentQuery {
     pub course_id: i64,
     pub learner_id: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct EnrollmentResponse {
+    pub course_id: i64,
+    pub learner_id: String,
+    pub is_enrolled: bool
 }

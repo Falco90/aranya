@@ -493,7 +493,7 @@ pub async fn get_course_creator(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<CourseCreatorResponse>, (StatusCode, String)> {
-    let result: Option<CourseCreatorResponse> = sqlx::query_as::<_, CourseCreatorResponse>(
+    let result: Option<(String,)> = sqlx::query_as::<_, (String,)>(
         r#"
         SELECT
             creator_id
@@ -512,7 +512,10 @@ pub async fn get_course_creator(
     })?;
 
     match result {
-        Some(progress) => Ok(Json(progress)),
+        Some((creator_id,)) => Ok(Json(CourseCreatorResponse {
+            course_id: params.course_id,
+            creator_id,
+        })),
         None => Err((StatusCode::NOT_FOUND, "Course not found".to_string())),
     }
 }

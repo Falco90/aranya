@@ -8,35 +8,29 @@ use serde_json::json;
 use sqlx::{Pool, Postgres, Row, postgres::PgRow};
 
 use crate::models::progress::{
-    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest, CourseProgressPercentage, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary, EnrollmentQuery, LearnerQuery, LessonCompleteRequest, ModuleCompleteRequest
+    CompleteQuizPayload, CompletedLessonsQuery, CompletedLessonsResponse, CourseCompleteRequest,
+    CourseProgressPercentage, CourseProgressQuery, CourseProgressResponse, CourseProgressSummary,
+    EnrollmentQuery, EnrollmentResponse, LearnerQuery, LessonCompleteRequest,
+    ModuleCompleteRequest,
 };
 
 pub async fn is_enrolled(
     State(pool): State<Pool<Postgres>>,
-    Query(query): Query<EnrollmentQuery>,
-) -> Result<Json<bool>, (StatusCode, String)> {
-    let exists = sqlx::query_scalar::<_, bool>(
-        r#"
-        SELECT EXISTS(
-            SELECT 1
-            FROM learner_course_enrollment
-            WHERE course_id = $1 AND learner_id = $2
-        )
-        "#,
-    )
-    .bind(query.course_id)
-    .bind(query.learner_id)
-    .fetch_one(&pool)
-    .await
-    .map_err(|err| {
-        (
-            StatusCode::INTERNAL_SERVER_ERROR,
-            format!("Database query failed: {}", err),
-        )
-    })?;
+    Query(params): Query<EnrollmentQuery>,
+) -> Result<Json<EnrollmentResponse>, (StatusCode, String)> {
+    println!{"is enrolled {:?}", params};
+    let exists = sqlx::query_scalar::<_, bool>( r#" SELECT EXISTS( SELECT 1 FROM learner_course_enrollment WHERE course_id = $1 AND learner_id = $2 ) "#, ) .bind(&params.course_id) .bind(&params.learner_id) .fetch_one(&pool) .await .map_err(|err| { ( StatusCode::INTERNAL_SERVER_ERROR, format!("Database query failed: {}", err), ) })?;
 
-    Ok(Json(exists))
+    println!("is enrolled? {}", exists);
+    println!("course id? {}", &params.course_id);
+    println!("learner id? {}", &params.learner_id);
+    Ok(Json(EnrollmentResponse {
+        course_id: params.course_id,
+        learner_id: params.learner_id,
+        is_enrolled: exists,
+    }))
 }
+
 pub async fn complete_lesson(
     State(pool): State<Pool<Postgres>>,
     Json(payload): Json<LessonCompleteRequest>,
