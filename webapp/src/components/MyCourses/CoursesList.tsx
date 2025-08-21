@@ -33,13 +33,12 @@ export default function CoursesList() {
         if (!res.ok) throw new Error("Failed to fetch courses")
         const data = await res.json()
 
-        // Attach NFTs to creator courses
         const createdWithNFTs: CreatorCourseSummary[] = await Promise.all(
           data.createdCourses.map(async (course: Omit<CreatorCourseSummary, "nft">) => {
             try {
               const nftAddr = await readContract(config, {
                 address: COURSE_MANAGER_ADDRESS,
-                abi: ICourseManager,
+                abi: ICourseManager.abi,
                 functionName: "getCreatorNFTAddress",
                 args: [BigInt(course.courseId)],
               })
@@ -65,8 +64,6 @@ export default function CoursesList() {
 
               return { ...course, nft }
             } catch (err) {
-              console.error("Error fetching creator NFT:", err)
-              // still return course with a dummy nft to keep type consistency
               return {
                 ...course,
                 nft: { address: "0x0000000000000000000000000000000000000000", metadata: {} },
@@ -75,13 +72,12 @@ export default function CoursesList() {
           })
         )
 
-        // Learner courses (NFT optional)
         const enrolledWithNFTs: LearnerCourseSummary[] = await Promise.all(
           data.enrolledCourses.map(async (course: LearnerCourseSummary) => {
             try {
               const nftAddr = await readContract(config, {
                 address: COURSE_MANAGER_ADDRESS,
-                abi: ICourseManager,
+                abi: ICourseManager.abi,
                 functionName: "getLearnerNFTAddress",
                 args: [BigInt(course.courseId)],
               })
@@ -132,11 +128,10 @@ export default function CoursesList() {
               <div className="inline-flex p-1 bg-stone-100 rounded-lg">
                 <button
                   onClick={() => setActiveView("learner")}
-                  className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    activeView === "learner"
+                  className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeView === "learner"
                       ? "bg-white shadow text-emerald-700"
                       : "text-stone-600 hover:text-emerald-700"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center">
                     <BookOpenIcon className="h-4 w-4 mr-2" />
@@ -145,11 +140,10 @@ export default function CoursesList() {
                 </button>
                 <button
                   onClick={() => setActiveView("creator")}
-                  className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${
-                    activeView === "creator"
+                  className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeView === "creator"
                       ? "bg-white shadow text-amber-700"
                       : "text-stone-600 hover:text-amber-700"
-                  }`}
+                    }`}
                 >
                   <div className="flex items-center">
                     <PenToolIcon className="h-4 w-4 mr-2" />
@@ -160,7 +154,6 @@ export default function CoursesList() {
             )}
           </div>
 
-          {/* Learner View */}
           {activeView === "learner" && (
             <div>
               <div className="mb-6">
@@ -190,7 +183,6 @@ export default function CoursesList() {
             </div>
           )}
 
-          {/* Creator View */}
           {activeView === "creator" && (
             <div>
               <div className="mb-6">
