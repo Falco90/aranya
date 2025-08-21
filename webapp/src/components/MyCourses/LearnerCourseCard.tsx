@@ -53,7 +53,7 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
                         </div>
                     </div>
                     <Link
-                        href={`/courses/${course.courseId}`}
+                        href={`/view/${course.courseId}`}
                         className="inline-flex items-center px-4 py-2 bg-amber-700 text-white rounded-md hover:bg-amber-800 text-sm"
                     >
                         <BookOpenIcon className="h-4 w-4 mr-2" />
