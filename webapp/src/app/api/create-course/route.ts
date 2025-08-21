@@ -3,33 +3,23 @@ import {
     submitAttestationRequest,
     retrieveDataAndProofBaseWithRetry,
 } from "../utils/fdc";
-import { ethers, AbiCoder } from 'ethers';
 import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
 
 import { decodeAbiParameters } from "viem";
 
-const provider = new ethers.JsonRpcProvider(process.env.COSTON2_RPC_URL);
-const signer = new ethers.Wallet(process.env.PRIVATE_KEY!, provider);
-
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
 
-const apiUrl = "https://ca9416f82b36.ngrok-free.app/get-course-creator";
-const postProcessJq = `{creatorId: .creatorId}`;
+const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/get-course-creator";
+const postProcessJq = `{courseId: .courseId, creatorId: .creatorId}`;
 const httpMethod = "GET";
-// Defaults to "Content-Type": "application/json"
 const headers = "{}";
 
 const body = "{}";
-const abiSignature = `{"components": [{"internalType": "address", "name": "creatorId", "type": "address"}],"name": "task","type": "tuple"}`;
+const abiSignature = `{"components": [{"internalType": "uint256", "name": "courseId", "type": "uint256"},{"internalType": "address", "name": "creatorId", "type": "address"}],"name": "task","type": "tuple"}`;
 
-// Configuration constants
 const attestationTypeBase = "Web2Json";
 const sourceIdBase = "PublicWeb2";
 const verifierUrlBase = WEB2JSON_VERIFIER_URL_TESTNET;
-
-type ResponseData = {
-    message: string
-}
 
 async function prepareAttestationRequest(apiUrl: string, postProcessJq: string, queryParams: string, abiSignature: string) {
     const requestBody = {
@@ -55,13 +45,8 @@ async function retrieveDataAndProof(abiEncodedRequest: string, roundId: number) 
 }
 
 export async function POST(request: Request) {
-    // 1. Save course to database (send to Rust backend)
-    // Parse JSON payload from frontend
     const coursePayload = await request.json();
 
-    console.log("Forwarding course payload to Rust backend:", coursePayload);
-
-    // Send to Rust backend
     const rustResponse = await fetch(`http://localhost:4000/create-course`, {
         method: "POST",
         headers: {
@@ -69,9 +54,8 @@ export async function POST(request: Request) {
         },
         body: JSON.stringify(coursePayload),
     });
-    console.log(rustResponse);
+
     const responseObj = await rustResponse.json();
-    console.log(responseObj);
 
     const queryParams = `{"courseId":"${responseObj.course_id}"}`;
 
@@ -81,10 +65,6 @@ export async function POST(request: Request) {
     const roundId = await submitAttestationRequest(abiEncodedRequest);
 
     const proof = await retrieveDataAndProof(abiEncodedRequest, roundId);
-    console.log("proof: ", proof);
-
-    // --- DECODE RESPONSE HEX ---
-    // Grab the Response struct components from the ABI of IWeb2JsonVerification
     const responseType = IWeb2JsonVerification.abi[0].inputs[0].components[1];
 
     if (!responseType) throw new Error("Response ABI not found");
@@ -99,7 +79,6 @@ export async function POST(request: Request) {
         ],
         proof.response_hex as `0x${string}`
     );
-    console.log("Decoded:", decoded);
 
     const decodedResponse = decoded[0];
 
