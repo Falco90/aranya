@@ -21,7 +21,6 @@ const CourseViewerClient: React.FC<Props> = ({ course }) => {
             if (!address) return;
 
             try {
-                // 1. Check enrollment
                 const enrollUrl = new URL("http://localhost:4000/is-enrolled");
                 enrollUrl.searchParams.set("courseId", String(course.id));
                 enrollUrl.searchParams.set("learnerId", address);
@@ -29,11 +28,10 @@ const CourseViewerClient: React.FC<Props> = ({ course }) => {
                 const enrollRes = await fetch(enrollUrl.toString());
                 if (!enrollRes.ok) throw new Error("Failed to check enrollment");
 
-                const { enrolled } = await enrollRes.json();
-                setIsEnrolled(enrolled);
+                const json = await enrollRes.json();
+                setIsEnrolled(json.isEnrolled);
 
-                // 2. Only fetch progress if enrolled
-                if (enrolled) {
+                if (json.isEnrolled) {
                     const progressUrl = new URL("http://localhost:4000/get-course-progress");
                     progressUrl.searchParams.set("courseId", String(course.id));
                     progressUrl.searchParams.set("learnerId", address);
