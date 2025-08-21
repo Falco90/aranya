@@ -294,7 +294,7 @@ pub async fn get_num_completed(
     State(pool): State<Pool<Postgres>>,
     Query(params): Query<CourseQuery>,
 ) -> Result<Json<NumCompletedResponse>, (StatusCode, String)> {
-    let result: NumCompletedResponse = sqlx::query_as::<_, NumCompletedResponse>(
+    let num_completed: i64 = sqlx::query_scalar(
         r#"
         SELECT COUNT(*)::bigint AS num_completed
         FROM course_completion
@@ -311,7 +311,7 @@ pub async fn get_num_completed(
         )
     })?;
 
-    Ok(Json(result))
+    Ok(Json(NumCompletedResponse { course_id: params.course_id, num_completed }))
 }
 
 pub async fn get_course(
