@@ -1,7 +1,7 @@
 import React from 'react'
 import Link from 'next/link'
 import { ArrowRightIcon } from 'lucide-react'
-import CoursePreviewCard from './CoursePreviewCard'
+import CoursePreviewCard from '../Courses/CoursePreviewCard'
 import { CoursePreview } from '@/types/course'
 
 interface CoursePreviewSectionProps {

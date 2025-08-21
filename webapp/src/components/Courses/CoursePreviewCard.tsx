@@ -70,7 +70,7 @@ const CoursePreviewCard: React.FC<CoursePreviewCardProps> = ({ course }) => {
                 </div>
                 {/* Action button */}
                 <Link
-                    href={course.courseId ? `/courses/${course.courseId}` : '/view'}
+                    href={course.courseId ? `/view/${course.courseId}` : '/view'}
                     className="mt-auto text-amber-700 hover:text-amber-800 font-medium flex items-center text-sm"
                 >
                     View Course
