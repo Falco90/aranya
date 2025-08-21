@@ -30,7 +30,7 @@ const Navbar: React.FC<NavbarProps> = ({
           </Link>
         </div>
         <div className="hidden md:flex items-center space-x-4">
-          <Link href="/my-courses" className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 flex items-center">
+          <Link href="/courses" className="px-4 py-2 text-sm font-medium text-stone-700 hover:text-amber-700 flex items-center">
             <BookOpenIcon className="h-4 w-4 mr-2" />
             Courses
           </Link>
