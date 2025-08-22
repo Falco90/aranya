@@ -42,11 +42,9 @@ const stepOrder: SubmissionStep[] = [
 ];
 
 type ServerResponse = {
-    // Shape this to match your API response
     proof?: any;
     courseId?: string | number;
     title?: string;
-    // add any other fields your API returns
 };
 
 export default function UpgradeNFTModal({
@@ -61,9 +59,7 @@ export default function UpgradeNFTModal({
     const { writeContractAsync, isPending: isWritePending } = useWriteContract();
     const [serverData, setServerData] = useState<ServerResponse | null>(null);
 
-    // A tiny helper to move through early steps while the server runs
     const bumpIntermediates = () => {
-        // Show “saving” quickly, then “attestation”, then “proof”
         setCurrentStep("attestation");
         setTimeout(() => setCurrentStep((s) => (s === "attestation" ? "proof" : s)), 500);
         setTimeout(
@@ -72,7 +68,6 @@ export default function UpgradeNFTModal({
         );
     };
 
-    // Hit your Next.js API route when the modal opens
     useEffect(() => {
         if (!isOpen) return;
 
@@ -115,7 +110,6 @@ export default function UpgradeNFTModal({
 
     useEffect(() => {
         if (currentStep === "pending" && serverData && isConnected) {
-            // Auto-confirm transaction
             handleConfirmTransaction();
         }
     }, [currentStep, serverData, isConnected]);
@@ -163,7 +157,6 @@ export default function UpgradeNFTModal({
     };
 
     const handleClose = () => {
-        // Allow close anytime; if you want a guard, re-enable your confirm()
         onClose();
     };
 
@@ -240,7 +233,6 @@ export default function UpgradeNFTModal({
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden">
-                {/* Header */}
                 <div className="p-6 border-b border-stone-200 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-stone-800">Upgrading Learner Tree</h2>
                     <button
@@ -251,7 +243,6 @@ export default function UpgradeNFTModal({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-6">
                     <div className="mb-6">
                         <div className="flex items-center mb-2">
@@ -296,7 +287,6 @@ export default function UpgradeNFTModal({
                         />
                     </div>
 
-                    {/* Pending action */}
                     {currentStep === "pending" && (
                         <button
                             onClick={handleConfirmTransaction}
@@ -308,7 +298,6 @@ export default function UpgradeNFTModal({
                         </button>
                     )}
 
-                    {/* Final status */}
                     {(currentStep === "success" || currentStep === "failed") && (
                         <div
                             className={`mt-6 p-4 rounded-md ${currentStep === "success"
@@ -349,7 +338,6 @@ export default function UpgradeNFTModal({
                         </div>
                     )}
 
-                    {/* Inline error (non-final) */}
                     {error && !["success", "failed"].includes(currentStep) && (
                         <p className="mt-4 text-sm text-red-600">{error}</p>
                     )}

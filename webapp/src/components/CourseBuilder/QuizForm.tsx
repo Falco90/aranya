@@ -9,7 +9,6 @@ const QuizForm: React.FC = () => {
   } = useCourseBuilder();
   const [questions, setQuestions] = useState<Question[]>([]);
   const currentModule = course.modules.find(mod => mod.id === activeModule);
-  // Load existing quiz if present
   useEffect(() => {
     if (currentModule?.quiz) {
       setQuestions(currentModule.quiz.questions);

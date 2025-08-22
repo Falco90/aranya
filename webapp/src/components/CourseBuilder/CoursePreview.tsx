@@ -42,9 +42,6 @@ const CoursePreview: React.FC = () => {
                   </div>
                   <h4 className="font-medium text-stone-800">{module.title}</h4>
                 </div>
-                <p className="text-sm text-stone-600 mt-1 ml-8">
-                  {module.description}
-                </p>
               </div>
               <div className="ml-8 mt-3 space-y-2">
                 {module.lessons.map(lesson => <div key={lesson.id} className="flex items-center text-sm">
@@ -56,7 +53,6 @@ const CoursePreview: React.FC = () => {
                   </div>)}
                 {module.quiz && <div className="flex items-center text-sm">
                     <GraduationCapIcon className="h-4 w-4 text-amber-600 mr-2" />
-                    <span className="text-stone-700">{module.quiz.title}</span>
                     <span className="ml-2 px-2 py-0.5 bg-amber-50 text-amber-700 rounded-full text-xs border border-amber-100">
                       Quiz • {module.quiz.questions.length} question
                       {module.quiz.questions.length !== 1 ? 's' : ''}

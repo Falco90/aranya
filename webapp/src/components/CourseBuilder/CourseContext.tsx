@@ -1,5 +1,5 @@
 import React, { useState, createContext, useContext, ReactNode } from 'react';
-// Define types
+
 export type AnswerOption = {
   id: string;
   answerText: string;
@@ -34,14 +34,14 @@ export type Course = {
   description: string;
   modules: Module[];
 };
-// Create an initial empty course
+
 const initialCourse: Course = {
   id: '1',
   title: '',
   description: '',
   modules: []
 };
-// Define context type
+
 type CourseBuilderContextType = {
   course: Course;
   setCourse: React.Dispatch<React.SetStateAction<Course>>;
@@ -52,9 +52,9 @@ type CourseBuilderContextType = {
   activeQuiz: string | null;
   setActiveQuiz: React.Dispatch<React.SetStateAction<string | null>>;
 };
-// Create context
+
 const CourseBuilderContext = createContext<CourseBuilderContextType | undefined>(undefined);
-// Create provider
+
 export const CourseBuilderProvider: React.FC<{
   children: ReactNode;
 }> = ({
@@ -77,7 +77,8 @@ export const CourseBuilderProvider: React.FC<{
       {children}
     </CourseBuilderContext.Provider>;
 };
-// Create hook for using the context
+
+
 export const useCourseBuilder = () => {
   const context = useContext(CourseBuilderContext);
   if (context === undefined) {

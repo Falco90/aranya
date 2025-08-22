@@ -42,7 +42,6 @@ const LessonContent: React.FC<LessonContentProps> = ({
         <iframe width="100%" height="100%" src={lesson.videoUrl} title={lesson.title} frameBorder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowFullScreen className="w-full h-full" />
       </div>}
       <div className="prose prose-stone max-w-none">
-        {/* Split content by newlines and create paragraphs */}
         {lesson.content.split('\n\n').map((paragraph, i) => <p key={i} className="mb-4 text-stone-700 leading-relaxed">
           {paragraph}
         </p>)}

@@ -45,7 +45,6 @@ const CourseBuilderLayout: React.FC = () => {
 
   return (
     <div className="flex h-screen overflow-hidden bg-stone-50">
-      {/* Sidebar */}
       <div className="w-64 bg-white border-r border-stone-200 p-4 flex flex-col">
         <div className="mb-6 flex items-center">
           <LeafIcon className="h-5 w-5 text-amber-700 mr-2" />
@@ -142,7 +141,6 @@ const CourseBuilderLayout: React.FC = () => {
         </div>
       </div>
 
-      {/* Main content */}
       <div className="flex-1 overflow-auto p-6 bg-stone-50">
         {activeTab === "course" && <CourseForm />}
         {activeTab === "module" && <ModuleForm />}
@@ -151,7 +149,6 @@ const CourseBuilderLayout: React.FC = () => {
         {activeTab === "preview" && <CoursePreview />}
       </div>
 
-      {/* Submit Course Modal */}
       <SubmitCourseModal
         isOpen={isSubmitModalOpen}
         onClose={handleCloseSubmitModal}

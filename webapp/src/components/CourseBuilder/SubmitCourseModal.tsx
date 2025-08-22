@@ -14,13 +14,10 @@ import {
     LeafIcon,
 } from "lucide-react";
 import { useAccount, useWriteContract } from "wagmi";
-// If your ABI lives elsewhere, adjust the path:
 import ICourseManager from "../../app/abis/aranya/ICourseManager.json";
-// If you keep CourseManager address in env, surface it to the client via NEXT_PUBLIC_*
 const COURSE_MANAGER_ADDRESS =
     process.env.NEXT_PUBLIC_COURSE_MANAGER_ADDRESS || "";
 
-// If you want to post the whole course, grab it from context:
 import { useCourseBuilder, Quiz } from "./CourseContext";
 import { CoursePayload, QuizPayload } from "../../types/course";
 
@@ -49,11 +46,9 @@ const stepOrder: SubmissionStep[] = [
 ];
 
 type ServerResponse = {
-    // Shape this to match your API response
     proof?: any;
     courseId?: string | number;
     title?: string;
-    // add any other fields your API returns
 };
 
 function toQuizPayload(quiz: Quiz): QuizPayload {
@@ -97,11 +92,7 @@ export default function SubmitCourseModal({
         }))
     };
 
-
-
-    // A tiny helper to move through early steps while the server runs
     const bumpIntermediates = () => {
-        // Show “saving” quickly, then “attestation”, then “proof”
         setCurrentStep("saving");
         setTimeout(() => setCurrentStep((s) => (s === "saving" ? "attestation" : s)), 500);
         setTimeout(
@@ -110,7 +101,6 @@ export default function SubmitCourseModal({
         );
     };
 
-    // Hit your Next.js API route when the modal opens
     useEffect(() => {
         if (!isOpen) return;
 
@@ -124,7 +114,6 @@ export default function SubmitCourseModal({
                 const res = await fetch("/api/create-course", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    // You can send only what your API needs (title/modules/lessons/etc.)
                     body: JSON.stringify(coursePayload),
                 });
 
@@ -136,7 +125,6 @@ export default function SubmitCourseModal({
                 if (cancelled) return;
 
                 setServerData(data);
-                // Server finished: we move to “pending” (user must sign tx next)
                 setCurrentStep("pending");
             } catch (e: any) {
                 if (cancelled) return;
@@ -153,7 +141,6 @@ export default function SubmitCourseModal({
 
     useEffect(() => {
         if (currentStep === "pending" && serverData && isConnected) {
-            // Auto-confirm transaction
             handleConfirmTransaction();
         }
     }, [currentStep, serverData, isConnected]);
@@ -202,7 +189,6 @@ export default function SubmitCourseModal({
     };
 
     const handleClose = () => {
-        // Allow close anytime; if you want a guard, re-enable your confirm()
         onClose();
     };
 
@@ -279,7 +265,6 @@ export default function SubmitCourseModal({
     return (
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden">
-                {/* Header */}
                 <div className="p-6 border-b border-stone-200 flex justify-between items-center">
                     <h2 className="text-xl font-bold text-stone-800">Submit Course</h2>
                     <button
@@ -290,7 +275,6 @@ export default function SubmitCourseModal({
                     </button>
                 </div>
 
-                {/* Body */}
                 <div className="p-6">
                     <div className="mb-6">
                         <div className="flex items-center mb-2">
@@ -341,7 +325,6 @@ export default function SubmitCourseModal({
                         />
                     </div>
 
-                    {/* Pending action */}
                     {currentStep === "pending" && (
                         <button
                             onClick={handleConfirmTransaction}
@@ -353,7 +336,6 @@ export default function SubmitCourseModal({
                         </button>
                     )}
 
-                    {/* Final status */}
                     {(currentStep === "success" || currentStep === "failed") && (
                         <div
                             className={`mt-6 p-4 rounded-md ${currentStep === "success"
@@ -394,7 +376,6 @@ export default function SubmitCourseModal({
                         </div>
                     )}
 
-                    {/* Inline error (non-final) */}
                     {error && !["success", "failed"].includes(currentStep) && (
                         <p className="mt-4 text-sm text-red-600">{error}</p>
                     )}

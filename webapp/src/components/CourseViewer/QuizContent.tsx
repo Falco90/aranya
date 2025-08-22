@@ -79,7 +79,7 @@ const QuizContent: React.FC<QuizContentProps> = ({
       const percentScore = Math.round(
         (quizResult.score / quizResult.totalQuestions) * 100,
       )
-      const passed = percentScore >= 70 // Assuming 70% is passing
+      const passed = percentScore >= 70
       return (
         <div className="max-w-3xl mx-auto px-6 py-8">
           <div className="mb-6">

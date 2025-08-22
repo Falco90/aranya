@@ -14,7 +14,6 @@ const HowItWorks: React.FC = () => {
             Our platform makes it easy to learn new skills, share your knowledge and prove it all on-chain
           </p>
         </div>
-        {/* Toggle Tabs */}
         <div className="mt-12 flex justify-center">
           <div className="inline-flex p-1 bg-stone-100 rounded-lg">
             <button onClick={() => setActiveTab('learners')} className={`px-6 py-2.5 rounded-md text-sm font-medium transition-all duration-200 ${activeTab === 'learners' ? 'bg-white shadow text-amber-700' : 'text-stone-600 hover:text-amber-700'}`}>
@@ -31,7 +30,6 @@ const HowItWorks: React.FC = () => {
             </button>
           </div>
         </div>
-        {/* Content Sections */}
         <div className="mt-12">
           {activeTab === 'learners' ? <div className="transition-opacity duration-300">
               <div className="grid grid-cols-1 gap-8 md:grid-cols-2 lg:grid-cols-4">

@@ -91,7 +91,6 @@ export default function EnrollModal({
                 if (cancelled) return;
 
                 setServerData(data);
-                // Server finished: we move to “pending” (user must sign tx next)
                 setCurrentStep("pending");
             } catch (e: any) {
                 if (cancelled) return;

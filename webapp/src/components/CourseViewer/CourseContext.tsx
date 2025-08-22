@@ -19,11 +19,11 @@ type CourseViewerContextType = {
     isModuleCompleted: (moduleId: number) => boolean
     getQuizResult: (quizId: number) => QuizResult | null
 }
-// Create context
+
 const CourseViewerContext = createContext<
     CourseViewerContextType | undefined
 >(undefined)
-// Create provider
+
 export const CourseViewerProvider: React.FC<{
     children: ReactNode,
     course: Course,
@@ -48,7 +48,7 @@ export const CourseViewerProvider: React.FC<{
         }, {} as Record<number, boolean>),
         quizResults: {},
     })
-    // Progress tracking functions
+
     const markLessonComplete = (lessonId: number) => {
         setProgress((prev) => ({
             ...prev,
@@ -116,7 +116,7 @@ export const CourseViewerProvider: React.FC<{
         </CourseViewerContext.Provider>
     )
 }
-// Create hook for using the context
+
 export const useCourseViewer = () => {
     const context = useContext(CourseViewerContext)
     if (context === undefined) {

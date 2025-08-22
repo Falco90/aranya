@@ -18,7 +18,7 @@ const CourseViewerLayout: React.FC = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isConnected, chainId, address } = useAccount();
   const [isEnrolltModalOpen, setIsEnrollModalOpen] = useState(false);
-  // Set initial active module and lesson
+
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
       const firstModule = course.modules[0];
@@ -63,25 +63,20 @@ const CourseViewerLayout: React.FC = () => {
     if (!activeLesson || !activeModule || isSubmitting) return;
 
     setIsSubmitting(true);
-
-    // Mark lesson complete in state
     markLessonComplete(activeLesson.id);
 
     try {
-      // Manually compute "new completed lessons" instead of relying on async state update
       const newCompletedLessons = {
         ...progress.completedLessons,
         [activeLesson.id]: true,
       };
 
-      // Check if all lessons in this module are now completed
       const allLessonsCompleted = activeModule.lessons.every(
         (lesson) => newCompletedLessons[lesson.id]
       );
 
       console.log("all lessons completed: ", allLessonsCompleted);
 
-      // Quiz is considered completed if there's no quiz
       const quizCompleted = !activeModule.quiz || isQuizCompleted(activeModule.quiz.id);
 
       console.log("quiz completed; ", quizCompleted);
@@ -90,14 +85,12 @@ const CourseViewerLayout: React.FC = () => {
 
       console.log("module complete: ", moduleComplete);
 
-      // Sync lesson completion to backend
       await fetch('http://localhost:4000/complete-lesson', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ lessonId: activeLesson.id, learnerId: address }),
       });
 
-      // Sync module completion if needed
       if (moduleComplete) {
         const res = await fetch('http://localhost:4000/complete-module', {
           method: 'POST',
@@ -121,7 +114,6 @@ const CourseViewerLayout: React.FC = () => {
 
       }
 
-      // Navigate to next lesson or quiz
       const nextLesson = getNextLesson();
       if (nextLesson) {
         handleLessonChange(nextLesson.moduleId, nextLesson.lessonId);
@@ -207,14 +199,13 @@ const CourseViewerLayout: React.FC = () => {
   const getPreviousLesson = () => {
     if (!activeModule || !activeLessonId) return null;
     const currentLessonIndex = activeModule.lessons.findIndex(l => l.id === activeLessonId);
-    // If there's a previous lesson in this module
     if (currentLessonIndex > 0) {
       return {
         moduleId: activeModule.id,
         lessonId: activeModule.lessons[currentLessonIndex - 1].id
       };
     }
-    // Check for previous module
+
     const currentModuleIndex = course.modules.findIndex(m => m.id === activeModuleId);
     if (currentModuleIndex > 0) {
       const prevModule = course.modules[currentModuleIndex - 1];
