@@ -9,10 +9,7 @@ use sqlx::{Pool, Postgres, Row, Transaction};
 use std::{collections::HashMap, convert::TryInto};
 
 use crate::models::course::{
-    AnswerOption, AnswerOptionRow, Course, CourseCreatorResponse, CoursePreview, CourseQuery,
-    CourseRow, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, LearnerId,
-    Lesson, LessonRow, Module, ModuleRow, NumCompletedResponse, Question, QuestionRow, Quiz,
-    QuizRow, UserCoursesResponse, UserQuery,
+    AnswerOption, AnswerOptionRow, CountsResponse, Course, CourseCreatorResponse, CoursePreview, CourseQuery, CourseRow, CreateCoursePayload, CreatedCourse, EnrolledCourse, JoinCourseRequest, LearnerId, Lesson, LessonRow, Module, ModuleRow, NumCompletedResponse, Question, QuestionRow, Quiz, QuizRow, UserCoursesResponse, UserQuery
 };
 
 pub async fn create_course(
@@ -311,7 +308,10 @@ pub async fn get_num_completed(
         )
     })?;
 
-    Ok(Json(NumCompletedResponse { course_id: params.course_id, num_completed }))
+    Ok(Json(NumCompletedResponse {
+        course_id: params.course_id,
+        num_completed,
+    }))
 }
 
 pub async fn get_course(
@@ -623,4 +623,33 @@ pub async fn get_user_courses(
             enrolled_courses,
         }),
     ))
+}
+
+pub async fn get_counts(
+    State(pool): State<Pool<Postgres>>,
+) -> Result<Json<CountsResponse>, (StatusCode, String)> {
+    let num_learners: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM learner")
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("DB error (learners): {}", e),
+            )
+        })?;
+
+    let num_courses: (i64,) = sqlx::query_as("SELECT COUNT(*) FROM course")
+        .fetch_one(&pool)
+        .await
+        .map_err(|e| {
+            (
+                StatusCode::INTERNAL_SERVER_ERROR,
+                format!("DB error (courses): {}", e),
+            )
+        })?;
+
+    Ok(Json(CountsResponse {
+        num_learners: num_learners.0,
+        num_courses: num_courses.0,
+    }))
 }

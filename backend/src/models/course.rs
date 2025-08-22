@@ -241,3 +241,10 @@ pub struct AnswerOptionRow {
     pub answer_text: String,
     pub is_correct: bool,
 }
+
+#[derive(Serialize)]
+#[serde(rename_all = "camelCase")]
+pub struct CountsResponse {
+    pub num_learners: i64,
+    pub num_courses: i64,
+}
