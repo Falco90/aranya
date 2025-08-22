@@ -147,14 +147,14 @@ const CourseViewerLayout: React.FC = () => {
       if (passed) {
         markQuizComplete(activeQuiz.id, result);
 
-        const learnerId = 'did:privy:cmd2wmiz80171kz0mmwjh1acf';
+        const learnerId = address;
         try {
           await fetch('http://localhost:4000/complete-quiz', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               quizId: activeQuiz.id,
-              learnerId: learnerId,  // from session/context
+              learnerId: learnerId,
               score: result.score,
               totalQuestions: result.totalQuestions,
             }),

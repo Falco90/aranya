@@ -18,7 +18,7 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
     const nextMilestone = getNextLearnerMilestone(progress);
 
     const canUpgrade =
-        course.progressPercent >= nextMilestone;
+        course.progressPercent >= nextMilestone!;
     return (
         <div className="bg-white rounded-lg border border-stone-200 shadow-sm overflow-hidden">
             <div className="flex">
@@ -61,24 +61,26 @@ const LearnerCourseCard: React.FC<LearnerCourseCardProps> = ({
                     </Link>
                 </div>
                 <div className="w-48 border-l border-stone-200 flex flex-col items-center justify-center p-4 bg-stone-50">
-                    <Image
-                        src={ipfsToHttp(nft.metadata.image)}
-                        alt="NFT"
-                        width={500}
-                        height={500}
-                        unoptimized
-                    />
-                    <div className="mt-2 text-xs text-stone-600 text-center">
-                        Next milestone: {nextMilestone}%
+                    <div className='border-3 border-solid border-stone-200 rounded-sm'>
+                        <Image
+                            src={ipfsToHttp(nft.metadata.image)}
+                            alt="NFT"
+                            width={500}
+                            height={500}
+                            unoptimized
+                        />
                     </div>
-                    <button
+                    <div className="mt-2 text-sm text-stone-600 text-center">
+                        {nextMilestone ? `Next milestone: ${nextMilestone}%` : "All milestones completed!"}
+                    </div>
+                    {nextMilestone && <button
                         className={`mt-2 px-3 py-1.5 text-xs rounded-md w-full flex items-center justify-center ${canUpgrade ? 'bg-emerald-600 text-white hover:bg-emerald-700' : 'bg-stone-200 text-stone-500 cursor-not-allowed'}`}
                         disabled={!canUpgrade}
                         onClick={() => setIsModalOpen(true)}
                     >
                         Upgrade Tree
                         {canUpgrade && <ArrowRightIcon className="h-3 w-3 ml-1" />}
-                    </button>
+                    </button>}
                 </div>
                 <UpgradeNFTModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} nftAddress={nft.address} courseId={course.courseId} />
             </div>

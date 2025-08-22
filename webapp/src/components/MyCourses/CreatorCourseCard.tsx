@@ -15,8 +15,8 @@ const CreatorCourseCard: React.FC<CreatorCourseCardProps> = ({
 }) => {
     const [isModalOpen, setIsModalOpen] = useState(false);
     const completions = nft?.metadata ? getAttribute(nft.metadata, "Completions") : 0;
-    const nextMilestone = getNextCreatorMilestone(completions);
-    const canUpgrade = nft && course.numCompleted >= nextMilestone
+    const nextMilestone = getNextCreatorMilestone(course.numCompleted);
+    const canUpgrade = nft && course.numCompleted >= nextMilestone!
     const completionRate =
         course.numLearners > 0
             ? Math.round((course.numCompleted / course.numLearners) * 100)
@@ -57,24 +57,26 @@ const CreatorCourseCard: React.FC<CreatorCourseCardProps> = ({
                     </Link>
                 </div>
                 <div className="w-48 border-l border-stone-200 flex flex-col items-center justify-center p-4 bg-stone-50">
-                    <Image
-                        src={ipfsToHttp(nft!.metadata.image)}
-                        alt="NFT"
-                        width={500}
-                        height={500}
-                        unoptimized
-                    />
-                    <div className="mt-2 text-xs text-stone-600 text-center">
-                        Next milestone: {nextMilestone}
+                    <div className='border-3 border-solid border-stone-200 rounded-sm'>
+                        <Image
+                            src={ipfsToHttp(nft!.metadata.image)}
+                            alt="NFT"
+                            width={500}
+                            height={500}
+                            unoptimized
+                        />
                     </div>
-                    <button
+                    <div className="mt-2 text-sm text-stone-600 text-center">
+                        {nextMilestone ? `Next milestone: ${nextMilestone} completions` : "All milestones completed!"}
+                    </div>
+                    {nextMilestone && <button
                         className={`mt-2 px-3 py-1.5 text-xs rounded-md w-full flex items-center justify-center ${canUpgrade ? 'bg-amber-600 text-white hover:bg-amber-700' : 'bg-stone-200 text-stone-500 cursor-not-allowed'}`}
                         disabled={!canUpgrade}
                         onClick={() => setIsModalOpen(true)}
                     >
                         Upgrade Tree
                         {canUpgrade && <ArrowRightIcon className="h-3 w-3 ml-1" />}
-                    </button>
+                    </button>}
                 </div>
                 <UpgradeNFTModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} nftAddress={nft.address} courseId={course.courseId} />
             </div>

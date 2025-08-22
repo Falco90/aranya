@@ -5,20 +5,20 @@ export function ipfsToHttp(uri: string) {
     return uri.replace("ipfs://", "https://ipfs.io/ipfs/")
 }
 
-export function getNextCreatorMilestone(completions: number): number {
+export function getNextCreatorMilestone(completions: number): number | null {
     if (completions < 1) return 1
     if (completions < 2) return 2
     if (completions < 3) return 3
     if (completions < 500) return 500
-    return 1000
+    return null
 }
 
-export function getNextLearnerMilestone(progressPercentage: number): number {
+export function getNextLearnerMilestone(progressPercentage: number): number | null {
     if (progressPercentage < 25) return 25
     if (progressPercentage < 50) return 50
     if (progressPercentage < 75) return 75
     if (progressPercentage < 100) return 100
-    return 100
+    return null
 }
 
 
