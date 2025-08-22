@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState } from 'react';
-import { SearchIcon, BookOpenIcon, GraduationCapIcon, StarIcon, PencilIcon, UsersIcon, BarChartIcon, AwardIcon, UserIcon, PenToolIcon } from 'lucide-react';
+import { SearchIcon, BookOpenIcon, GraduationCapIcon, StarIcon, PencilIcon, UsersIcon, BarChartIcon, AwardIcon, UserIcon, PenToolIcon, TreesIcon, SproutIcon } from 'lucide-react';
 const HowItWorks: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'learners' | 'creators'>('learners');
   return <div className="py-16 bg-white">
@@ -11,8 +11,7 @@ const HowItWorks: React.FC = () => {
             How Aranya Works
           </h2>
           <p className="mt-4 text-xl text-stone-600 max-w-2xl mx-auto">
-            Our platform makes it easy to learn new skills and share your
-            knowledge
+            Our platform makes it easy to learn new skills, share your knowledge and prove it all on-chain
           </p>
         </div>
         {/* Toggle Tabs */}
@@ -46,8 +45,7 @@ const HowItWorks: React.FC = () => {
                       Discover Courses
                     </h4>
                     <p className="text-stone-600">
-                      Browse our extensive library of courses created by expert
-                      instructors across various subjects.
+                      Pick a course from our extensive library of courses on various subjects.
                     </p>
                   </div>
                 </div>
@@ -56,13 +54,12 @@ const HowItWorks: React.FC = () => {
                     2
                   </div>
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
-                    <BookOpenIcon className="h-8 w-8 text-amber-700 mb-4" />
+                    <SproutIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Learn at Your Pace
+                      Enroll and Mint Your Seed
                     </h4>
                     <p className="text-stone-600">
-                      Access course materials anytime and learn at your own pace
-                      with our flexible learning platform.
+                      Enroll in a course and a seed will be minted to you. Then grow it by learning! 
                     </p>
                   </div>
                 </div>
@@ -73,10 +70,10 @@ const HowItWorks: React.FC = () => {
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
                     <GraduationCapIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Test Your Knowledge
+                      Improve Your Knowledge
                     </h4>
                     <p className="text-stone-600">
-                      Reinforce your learning with quizzes and track your
+                      Improve your knowledge with lessons and quizzes and track your
                       progress throughout each course.
                     </p>
                   </div>
@@ -86,13 +83,12 @@ const HowItWorks: React.FC = () => {
                     4
                   </div>
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
-                    <StarIcon className="h-8 w-8 text-amber-700 mb-4" />
+                    <TreesIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Earn Certificates
+                      Grow Your Forest
                     </h4>
                     <p className="text-stone-600">
-                      Complete courses to earn certificates that showcase your
-                      new skills and knowledge.
+                      As you progress through courses transform your seeds into trees!
                     </p>
                   </div>
                 </div>
@@ -106,7 +102,7 @@ const HowItWorks: React.FC = () => {
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
                     <PencilIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Create Content
+                      Create Your Course
                     </h4>
                     <p className="text-stone-600">
                       Build engaging courses with our intuitive course builder.
@@ -119,13 +115,12 @@ const HowItWorks: React.FC = () => {
                     2
                   </div>
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
-                    <UsersIcon className="h-8 w-8 text-amber-700 mb-4" />
+                    <SproutIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Reach Students
+                      Mint Your Seed
                     </h4>
                     <p className="text-stone-600">
-                      Share your expertise with learners from around the world
-                      who are eager to learn from you.
+                      Upon submitting your course a seed will be minted to you! Watch it grow as more people complete your course.
                     </p>
                   </div>
                 </div>
@@ -149,13 +144,12 @@ const HowItWorks: React.FC = () => {
                     4
                   </div>
                   <div className="bg-stone-50 p-6 rounded-lg border border-stone-200 h-full">
-                    <AwardIcon className="h-8 w-8 text-amber-700 mb-4" />
+                    <TreesIcon className="h-8 w-8 text-amber-700 mb-4" />
                     <h4 className="text-lg font-medium text-stone-800 mb-2">
-                      Earn Recognition
+                      Grow Your Forest
                     </h4>
                     <p className="text-stone-600">
-                      Build your reputation as an educator and earn rewards
-                      based on your course's success.
+                      Build your reputation as an educator by growing your on-chain forest of courses.
                     </p>
                   </div>
                 </div>

@@ -9,8 +9,6 @@ interface CoursePreviewSectionProps {
 }
 
 const CoursePreviewSection: React.FC<CoursePreviewSectionProps> = ({courses}) => {
-  // Sample course data
-
   return (
     <div className="py-16 bg-stone-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">

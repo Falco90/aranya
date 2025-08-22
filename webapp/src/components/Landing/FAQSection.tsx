@@ -6,22 +6,16 @@ const FAQSection: React.FC = () => {
   const [openIndex, setOpenIndex] = useState<number | null>(0);
   const faqs = [{
     question: 'How do I get started with Aranya?',
-    answer: 'Getting started is easy! Simply create an account, browse our course catalog, and enroll in any course that interests you. For creators, you can start building your course right away after signing up.'
-  }, {
-    question: 'Are the courses free?',
-    answer: 'We offer both free and premium courses. Free courses provide access to basic content, while premium courses offer in-depth materials quizzes certificates, and direct instructor support.'
+    answer: 'Getting started is easy! Simply connect your wallet, browse our course catalog, and enroll in any course that interests you. For creators, you can start building your course right away after connecting.'
   }, {
     question: 'How do I create my own course?',
-    answer: 'After signing up, navigate to the "Create" section in your dashboard. Our intuitive course builder allows you to add modules lessons quizzes, and multimedia content. You can preview your course before publishing it to our platform.'
+    answer: 'Head to the "Teaching" tab on the "My Courses" page. Our intuitive course builder allows you to add modules lessons quizzes, and multimedia content. You can preview your course before publishing it to our platform.'
   }, {
     question: 'Can I get a certificate after completing a course?',
-    answer: "Yes! Upon completing all required modules and passing the final assessments, you' ll receive a shareable certificate that you can add to your resume or LinkedIn profile ., ':"
+    answer: 'With Aranya you will mint a seed when you enroll in a course. This seed will grow into a tree when you progress through the course. After you complete the course you will have a mature tree in your on-chain wallet that serves as an easy-to-verify proof of your skill.'
   }, {
-    question: 'How do I track my progress in a course?',
-    answer: 'Your progress is automatically tracked as you complete lessons and quizzes. You can view your progress on the course dashboard, which shows completed lessons, quiz scores, and overall course completion percentage.'
-  }, {
-    question: 'What kind of support is available if I have questions?',
-    answer: 'We offer multiple support channels including a comprehensive help center, community forums where you can ask questions, and direct messaging with instructors for premium courses.'
+    question: 'How can I grow my reputation as a teacher?',
+    answer: 'Your on-chain tree will grow as more learners complete your course. Showing off your on-chain forest of course trees will serve as easily verifiable proof to your skills as a teacher'
   }];
   const toggleFAQ = (index: number) => {
     setOpenIndex(openIndex === index ? null : index);
