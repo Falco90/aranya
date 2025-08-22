@@ -11,12 +11,14 @@ interface QuizContentProps {
   module: Module
   onComplete: (result: QuizResult) => void
   existingResult?: QuizResult | null
+  isPreview: boolean;
 }
 const QuizContent: React.FC<QuizContentProps> = ({
   quiz,
   module,
   onComplete,
   existingResult,
+  isPreview
 }) => {
   if (quiz) {
     const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0)

@@ -6,6 +6,8 @@ import QuizContent from './QuizContent';
 import { QuizResult } from '@/types/course';
 import { useAccount } from 'wagmi';
 import EnrollModal from './EnrollModal';
+import { ArrowRightIcon, BookOpenIcon, LeafIcon } from 'lucide-react';
+import { ConnectButton } from '@rainbow-me/rainbowkit';
 
 const CourseViewerLayout: React.FC = () => {
   const { course, markLessonComplete, markQuizComplete, getQuizResult, isQuizCompleted, isLessonCompleted, isModuleCompleted, progress, isEnrolled } = useCourseViewer();
@@ -15,7 +17,7 @@ const CourseViewerLayout: React.FC = () => {
   const [activeQuizId, setActiveQuizId] = useState<number | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const { isConnected, chainId, address } = useAccount();
-  const [isSubmitModalOpen, setIsSubmitModalOpen] = useState(false);
+  const [isEnrolltModalOpen, setIsEnrollModalOpen] = useState(false);
   // Set initial active module and lesson
   useEffect(() => {
     if (course.modules.length > 0 && !activeModuleId) {
@@ -226,75 +228,89 @@ const CourseViewerLayout: React.FC = () => {
     return null;
   };
 
-  const handleOpenSubmitModal = () => {
-    setIsSubmitModalOpen(true);
+  const handleOpenEnrollModal = () => {
+    setIsEnrollModalOpen(true);
   };
 
-  const handleCloseSubmitModal = () => {
-    setIsSubmitModalOpen(false);
+  const handleCloseEnrollModal = () => {
+    setIsEnrollModalOpen(false);
   };
 
 
   return (
     <div className="flex h-screen bg-stone-50 overflow-hidden">
-      {!isEnrolled ? (
-        // 🔒 Enrollment prompt if learner isn’t enrolled
-        <div className="flex-1 flex items-center justify-center">
-          <div className="p-6 text-center">
-            <p className="mb-4 text-gray-600">Want full access to this course?</p>
-            <button
-              className="px-4 py-2 bg-indigo-600 text-white rounded-xl shadow"
-              onClick={handleOpenSubmitModal}
-            >
-              Enroll Now
-            </button>
-          </div>
-          <EnrollModal
-            isOpen={isSubmitModalOpen}
-            onClose={handleCloseSubmitModal}
-            courseId={course.id}
-          />
-        </div>
-      ) : (
-        // ✅ Show the full course UI if enrolled
-        <>
-          <CourseSidebar
-            course={course}
-            activeModuleId={activeModuleId}
-            activeLessonId={activeLessonId}
-            activeQuizId={activeQuizId}
-            onLessonSelect={handleLessonChange}
-            onQuizSelect={handleQuizSelect}
-          />
-          <div className="flex-1 overflow-auto">
-            {activeLesson ? (
-              <LessonContent
-                lesson={activeLesson}
-                module={activeModule}
-                nextLesson={getNextLesson()}
-                previousLesson={getPreviousLesson()}
-                isSubmitting={isSubmitting}
-                isLessonCompleted={isLessonCompleted}
-                onNavigate={handleLessonChange}
-                onComplete={handleLessonComplete}
-              />
-            ) : activeQuiz ? (
-              <QuizContent
-                quiz={activeQuiz}
-                module={activeModule!}
-                onComplete={handleQuizComplete}
-                existingResult={getQuizResult(activeQuiz.id)}
-              />
-            ) : (
-              <div className="flex items-center justify-center h-full">
-                <div className="text-center p-8">
-                  <p className="text-stone-600">Select a lesson to begin learning</p>
+      <>
+        <CourseSidebar
+          course={course}
+          activeModuleId={activeModuleId}
+          activeLessonId={activeLessonId}
+          activeQuizId={activeQuizId}
+          onLessonSelect={handleLessonChange}
+          onQuizSelect={handleQuizSelect}
+          isPreview={!isEnrolled}
+        />
+        <div className="flex-1 overflow-auto">
+          {!isEnrolled && (
+            <div className="bg-gradient-to-r from-amber-50 to-amber-100 border-b border-amber-200 p-4">
+              <div className="max-w-5xl mx-auto flex flex-col md:flex-row items-center justify-between">
+                <div className="flex items-center mb-4 md:mb-0">
+                  <div className="bg-amber-700 text-white p-2 rounded-lg mr-3">
+                    <LeafIcon className="h-6 w-6" />
+                  </div>
+                  <div>
+                    <h2 className="text-lg font-bold text-amber-800">
+                      Course Preview Mode
+                    </h2>
+                    <p className="text-amber-700 text-sm">
+                      You're viewing a preview of this course. Enroll to access
+                      all modules.
+                    </p>
+                  </div>
                 </div>
+                {isConnected ? (
+                  <button
+                    onClick={handleOpenEnrollModal}
+                    className="px-6 py-2.5 bg-amber-700 text-white rounded-md hover:bg-amber-800 flex items-center font-medium"
+                  >
+                    <BookOpenIcon className="h-5 w-5 mr-2" />
+                    Enroll in Course
+                  </button>
+                ) : (
+                  <ConnectButton />
+                )}
               </div>
-            )}
-          </div>
-        </>
-      )}
+            </div>
+          )}
+          {activeLesson ? (
+            <LessonContent
+              lesson={activeLesson}
+              module={activeModule}
+              nextLesson={getNextLesson()}
+              previousLesson={getPreviousLesson()}
+              isSubmitting={isSubmitting}
+              isLessonCompleted={isLessonCompleted}
+              onNavigate={handleLessonChange}
+              onComplete={handleLessonComplete}
+              isPreview={!isEnrolled}
+            />
+          ) : activeQuiz ? (
+            <QuizContent
+              quiz={activeQuiz}
+              module={activeModule!}
+              onComplete={handleQuizComplete}
+              existingResult={getQuizResult(activeQuiz.id)}
+              isPreview={!isEnrolled}
+            />
+          ) : (
+            <div className="flex items-center justify-center h-full">
+              <div className="text-center p-8">
+                <p className="text-stone-600">Select a lesson to begin learning</p>
+              </div>
+            </div>
+          )}
+        </div>
+      </>
+      <EnrollModal courseId={course.id} isOpen={isEnrolltModalOpen} onClose={handleCloseEnrollModal} />
     </div>
   );
 

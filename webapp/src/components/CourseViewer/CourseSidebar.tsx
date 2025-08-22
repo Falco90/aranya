@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Course, Module } from '../../types/course';
-import { ChevronDownIcon, ChevronRightIcon, BookIcon, LeafIcon, CheckCircleIcon, CircleIcon, GraduationCapIcon } from 'lucide-react';
+import { ChevronDownIcon, ChevronRightIcon, BookIcon, LeafIcon, CheckCircleIcon, CircleIcon, GraduationCapIcon, LockIcon } from 'lucide-react';
 import { useCourseViewer } from './CourseContext';
 interface CourseSidebarProps {
   course: Course;
@@ -9,6 +9,7 @@ interface CourseSidebarProps {
   activeQuizId: number | null;
   onLessonSelect: (moduleId: number, lessonId: number) => void;
   onQuizSelect: (moduleId: number, quizId: number) => void;
+  isPreview: boolean;
 }
 const CourseSidebar: React.FC<CourseSidebarProps> = ({
   course,
@@ -16,7 +17,8 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
   activeLessonId,
   activeQuizId,
   onLessonSelect,
-  onQuizSelect
+  onQuizSelect,
+  isPreview
 }) => {
   const { isLessonCompleted, isQuizCompleted, isModuleCompleted } =
     useCourseViewer();
@@ -24,6 +26,10 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
     [activeModuleId || '']: true
   });
   const toggleModule = (moduleId: number) => {
+    if (isPreview && course.modules[0]?.id !== moduleId) {
+      return
+    }
+
     setExpandedModules(prev => ({
       ...prev,
       [moduleId]: !prev[moduleId]
@@ -37,19 +43,30 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
           {course.title || 'Untitled Course'}
         </h1>
       </div>
+      {isPreview && (
+        <div className="mt-2 text-xs text-amber-700 bg-amber-50 p-2 rounded-md flex items-center">
+          <CircleIcon className="h-3 w-3 mr-1 fill-amber-500 text-amber-500" />
+          Preview Mode - Only first module available
+        </div>
+      )}
     </div>
     <div className="overflow-y-auto flex-1 py-2">
-      {course.modules.map((module) => {
+      {course.modules.map((module, index) => {
         const moduleCompleted = isModuleCompleted(module.id)
+        const isFirstModule = index === 0
+        const isLocked = isPreview && !isFirstModule
         return (
           <div key={module.id} className="mb-1">
             <button
               onClick={() => toggleModule(module.id)}
-              className={`w-full px-4 py-2 flex items-center justify-between text-left ${activeModuleId === module.id ? 'bg-stone-100 text-amber-800' : 'text-stone-700 hover:bg-stone-50'}`}
+              className={`w-full px-4 py-2 flex items-center justify-between text-left ${isLocked ? 'text-stone-400 cursor-not-allowed' : activeModuleId === module.id ? 'bg-stone-100 text-amber-800' : 'text-stone-700 hover:bg-stone-50'}`}
+              disabled={isLocked}
             >
               <div className="flex items-center">
                 <span className="mr-2">
-                  {expandedModules[module.id] ? (
+                  {isLocked ? (
+                    <LockIcon className="h-4 w-4" />
+                  ) : expandedModules[module.id] ? (
                     <ChevronDownIcon className="h-4 w-4" />
                   ) : (
                     <ChevronRightIcon className="h-4 w-4" />
@@ -58,7 +75,9 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 <span className="font-medium">{module.title}</span>
               </div>
               <div className="flex items-center">
-                {moduleCompleted ? (
+                {isLocked ? (
+                  <LockIcon className="h-4 w-4 text-stone-300 mr-2" />
+                ) : moduleCompleted ? (
                   <CheckCircleIcon className="h-4 w-4 text-emerald-600 mr-2" />
                 ) : (
                   <CircleIcon className="h-4 w-4 text-stone-300 mr-2" />
@@ -68,7 +87,7 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                 </span>
               </div>
             </button>
-            {expandedModules[module.id] && (
+            {expandedModules[module.id] && !isLocked && (
               <div className="ml-6 mr-2 mt-1 mb-2 space-y-1">
                 {module.lessons.map((lesson) => {
                   const isCompleted = isLessonCompleted(lesson.id)
@@ -97,7 +116,6 @@ const CourseSidebar: React.FC<CourseSidebarProps> = ({
                     ) : (
                       <GraduationCapIcon className="h-3.5 w-3.5 mr-2 flex-shrink-0" />
                     )}
-                    <span className="truncate">Quiz</span>
                   </button>
                 )}
               </div>

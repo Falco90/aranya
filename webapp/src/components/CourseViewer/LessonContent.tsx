@@ -16,6 +16,7 @@ interface LessonContentProps {
   isLessonCompleted: (lessonId: number) => boolean;
   onNavigate: (moduleId: number, lessonId: number) => void;
   onComplete: () => void;
+  isPreview: boolean;
 }
 const LessonContent: React.FC<LessonContentProps> = ({
   lesson,
@@ -25,7 +26,8 @@ const LessonContent: React.FC<LessonContentProps> = ({
   isSubmitting,
   isLessonCompleted,
   onNavigate,
-  onComplete
+  onComplete,
+  isPreview
 }) => {
 
   const lessonCompleted = isLessonCompleted(lesson.id);
@@ -53,7 +55,7 @@ const LessonContent: React.FC<LessonContentProps> = ({
       </button> : <div />
 
       }
-      {!lessonCompleted &&
+      {!lessonCompleted && !isPreview &&
         <button
           onClick={onComplete}
           disabled={isSubmitting}
