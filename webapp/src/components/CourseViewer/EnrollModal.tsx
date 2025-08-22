@@ -233,7 +233,7 @@ export default function EnrollModal({
         <div className="fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden">
                 <div className="p-6 border-b border-stone-200 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-stone-800">Enroll</h2>
+                    <h2 className="text-xl font-bold text-stone-800">Enroll in course</h2>
                     <button
                         onClick={handleClose}
                         className="text-stone-500 hover:text-stone-700"
@@ -247,7 +247,7 @@ export default function EnrollModal({
                         <div className="flex items-center mb-2">
                             <LeafIcon className="h-5 w-5 text-amber-700 mr-2" />
                             <h3 className="font-medium text-stone-800">
-                                Upgrading
+                                Enrolling
                             </h3>
                         </div>
                         <p className="text-stone-600 text-sm">

@@ -268,7 +268,7 @@ export default function SubmitCourseModal({
                         {status === "active"
                             ? description
                             : status === "done"
-                                ? description.replace("...", "ed successfully")
+                                ? description.replace("...", " successfull")
                                 : waitingDescription}
                     </p>
                 </div>
