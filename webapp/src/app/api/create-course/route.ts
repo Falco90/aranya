@@ -7,7 +7,7 @@ import IWeb2JsonVerification from "../../abis/fdc/IWeb2JsonVerification.json";
 
 import { decodeAbiParameters } from "viem";
 
-const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
+const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
 const apiUrl = `${process.env.NEXT_PUBLIC_NGROK_LINK}/get-course-creator`;
 const postProcessJq = `{courseId: .courseId, creatorId: .creatorId}`;
