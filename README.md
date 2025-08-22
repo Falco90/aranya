@@ -2,6 +2,7 @@
 
 Aranya is a course platform that provides on-chain credentials for learners and teachers in the form of Tree NFTs that grow as course milestones are reached. Aranya leverages the Flare Data Connector to ensure data integrity of teachers and learners. Aranya smart contracts are currently only deployed on Flare Coston2 testnet.
 
+Warning: this project is in a very early stage and has not been tested thoroughly.
 
 ## How it works
 ### Creating a course
