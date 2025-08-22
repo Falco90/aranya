@@ -18,12 +18,12 @@ Aranya is a course platform that provides on-chain credentials for learners and 
 4. A token on the LearnerNFT contract tied to the course is minted to the learner.
 
 ### Upgrading CreatorNFT or LearnerNFT
-1. When a teacher, or learner reaches certain milestones in their course (X% of modules completed for learner, or X number of learners that completed course), upgrade NFT can be called from the frontend.
+1. When a teacher or learner reaches certain milestones in their course (X% of modules completed for learner, or X number of learners that completed course for teacher), upgrade NFT can be called from the frontend.
 2. An attestation is submitted and a proof is retrieved with the courseId and either the number of completions (teacher) or progress percentage (learner).
 3. The updateMilestone function is called on the LearnerNFT or CreatorNFT contract with the proof as argument, ensuring integrity of learner or teacher data.
 
 ## Installation
-Aranya has a Rust backend and a NextJS frontend. To run the repository locally you need to have Rust installed as well as TypeScript and Node. You will also need ngrok because the backend endpoints on localhost need to be accesible for Flare.
+Aranya has a Rust backend and a NextJS frontend. To run the repository locally you need to have Rust installed as well as TypeScript and Node. You will also need [ngrok](https://ngrok.com/) because the backend endpoints on localhost need to be accesible for Flare the Flare Data Connector to interact with.
 
 ### Setting up the backend
 ```
