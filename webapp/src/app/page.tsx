@@ -17,14 +17,25 @@ const LandingPage: React.FC<LandingPageProps> = async ({
   onLogout
 }) => {
 
-  const response = await fetch("http://localhost:4000/get-top-courses");
-  const courses: CoursePreview[] = await response.json();
+  const [coursesResponse, countsResponse] = await Promise.all([
+    fetch("http://localhost:4000/get-top-courses"),
+    fetch("http://localhost:4000/get-counts"),
+  ]);
+
+  if (!coursesResponse.ok || !countsResponse.ok) {
+    throw new Error("Failed to fetch data");
+  }
+
+  const [courses, counts] = await Promise.all([
+    coursesResponse.json(),
+    countsResponse.json(),
+  ]);
 
   return (
     <div className="min-h-screen flex flex-col bg-stone-50">
       <Navbar isLoggedIn={isLoggedIn} onLogin={onLogin} onLogout={onLogout} />
       <main>
-        <HeroSection isLoggedIn={isLoggedIn} onLogin={onLogin} />
+        <HeroSection isLoggedIn={isLoggedIn} onLogin={onLogin} counts={counts} />
         <HowItWorks />
         <CoursePreviewSection courses={courses} />
         <FAQSection />
