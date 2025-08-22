@@ -130,8 +130,6 @@ library Base {
         console.log("response abiEncodedRequest: ");
         console.logBytes(response.abiEncodedRequest);
         console.log("\n");
-        // FIXME what is the point of the following line?
-        // bytes memory memoryAbiEncodedRequest = response.abiEncodedRequest;
 
         return response;
     }
@@ -151,7 +149,6 @@ library Base {
 
         vm.startBroadcast(deployerPrivateKey);
 
-        // address fdcHubAddress = 0x48aC463d7975828989331F4De43341627b9c5f1D;
         IFdcHub fdcHub = ContractRegistry.getFdcHub();
         console.log("fcdHub address:");
         console.log(address(fdcHub));

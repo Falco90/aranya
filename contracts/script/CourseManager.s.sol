@@ -62,20 +62,3 @@ contract DeployContract is Script {
         );
     }
 }
-
-// contract InteractWithContract is Script {
-//     function run() external {
-//         string memory addressString = vm.readLine(
-//             string.concat(dirPath, contractName, "_address", ".txt")
-//         );
-//         address _address = vm.parseAddress(addressString);
-
-//         uint256 deployerPrivateKey = vm.envUint("PRIVATE_KEY");
-//         vm.startBroadcast(deployerPrivateKey);
-//         ICourseManager courseManager = ICourseManager(_address);
-//         courseManager.createCourse(2, "Test Course", "ThaiCourse", "THAI");
-//         courseManager.enroll(2);
-
-//         vm.stopBroadcast();
-//     }
-// }
