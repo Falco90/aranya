@@ -215,7 +215,7 @@ export default function CoursesList() {
                   type="creator"
                   message="You haven't created any courses yet"
                   actionText="Create a Course"
-                  actionLink="/builder"
+                  actionLink="/course-builder"
                 />
               )}
             </div>

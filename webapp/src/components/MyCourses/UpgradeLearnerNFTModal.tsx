@@ -229,7 +229,7 @@ export default function UpgradeNFTModal({
                         {status === "active"
                             ? description
                             : status === "done"
-                                ? description.replace("...", "ed successfully")
+                                ? description.replace("...", " successfull")
                                 : waitingDescription}
                     </p>
                 </div>
@@ -242,7 +242,7 @@ export default function UpgradeNFTModal({
             <div className="bg-white rounded-lg shadow-xl max-w-lg w-full overflow-hidden">
                 {/* Header */}
                 <div className="p-6 border-b border-stone-200 flex justify-between items-center">
-                    <h2 className="text-xl font-bold text-stone-800">Submit Course</h2>
+                    <h2 className="text-xl font-bold text-stone-800">Upgrading Learner Tree</h2>
                     <button
                         onClick={handleClose}
                         className="text-stone-500 hover:text-stone-700"
