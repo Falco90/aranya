@@ -8,7 +8,7 @@ import { decodeAbiParameters } from "viem";
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL } = process.env;
 
-const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/get-course-progress-percentage";
+const apiUrl = `${process.env.NEXT_PUBLIC_NGROK_LINK}/get-course-progress-percentage`;
 const postProcessJq = `{courseId: .courseId, learnerId: .learnerId, progressPercent: .progressPercent}`;
 const httpMethod = "GET";
 const headers = "{}";

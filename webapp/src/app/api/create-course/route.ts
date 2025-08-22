@@ -9,7 +9,7 @@ import { decodeAbiParameters } from "viem";
 
 const { WEB2JSON_VERIFIER_URL_TESTNET, VERIFIER_API_KEY_TESTNET, COSTON2_DA_LAYER_URL, COURSE_MANAGER_ADDRESS } = process.env;
 
-const apiUrl = "https://bc2c4fbc00fd.ngrok-free.app/get-course-creator";
+const apiUrl = `${process.env.NEXT_PUBLIC_NGROK_LINK}/get-course-creator`;
 const postProcessJq = `{courseId: .courseId, creatorId: .creatorId}`;
 const httpMethod = "GET";
 const headers = "{}";
